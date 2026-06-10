@@ -1,0 +1,36 @@
+{
+  "name": "contentstack-nextjs-starter-app",
+  "version": "0.1.2",
+  "private": true,
+  "overrides": {
+    "qs": "6.14.1",
+    "sharp": "npm:@neostack/empty-package@^1.0.0",
+    "preact": "10.28.2"
+  },
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@contentstack/live-preview-utils": "^4.4.3",
+    "@contentstack/utils": "^1.9.1",
+    "contentstack": "^3.27.0",
+    "html-react-parser": "5.2.10",
+    "moment": "2.30.1",
+    "next": "16.0.10",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-loading-skeleton": "3.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "22.10.1",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "eslint": "9.39.1",
+    "eslint-config-next": "15.3.3",
+    "typescript": "5.7.2"
+  }
+}
