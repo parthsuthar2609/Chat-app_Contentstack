@@ -16,6 +16,7 @@
   "dependencies": {
     "@contentstack/live-preview-utils": "^4.4.3",
     "@contentstack/utils": "^1.9.1",
+    "@cursor/sdk": "^1.0.18",
     "contentstack": "^3.27.0",
     "html-react-parser": "5.2.10",
     "moment": "2.30.1",

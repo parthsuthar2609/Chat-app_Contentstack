@@ -269,10 +269,39 @@ const AI_ASSISTANT_RTE_PATHS = [
     "page_component.ai_assistant.hero_description",
 ];
 
+const AI_ASSISTANT_MERGE_KEYS = [
+    "main_heading",
+    "text_subheading",
+    "clear_chat_cta",
+    "content_stack_heading_1",
+    "content_stack_heading_2",
+    "content_stack_heading_3",
+    "content_stack_heading_4",
+    "sitecore_heading_1",
+    "sitecore_heading_2",
+    "sitecore_heading_3",
+    "sitecore_heading_4",
+];
+
+const mergeBlockWithStack = (block, stack = {}) => {
+    const merged = { ...stack };
+    for (const key of AI_ASSISTANT_MERGE_KEYS) {
+        const blockValue = block?.[key];
+        if (blockValue != null && String(blockValue).trim() !== "") {
+            merged[key] = merged[key] ?? blockValue;
+        }
+    }
+    if (block?.$ || stack?.$) {
+        merged.$ = { ...(block?.$ || {}), ...(stack?.$ || {}) };
+    }
+    return merged;
+};
+
 const collectTechStacksFromBlock = (block) => {
     const raw = block?.tech_stacks ?? block?.tech_stack;
-    if (!raw) return [];
-    return Array.isArray(raw) ? raw : [raw];
+    if (!raw) return [mergeBlockWithStack(block, {})];
+    const rows = Array.isArray(raw) ? raw : [raw];
+    return rows.map((row) => mergeBlockWithStack(block, row));
 };
 
 /** Pull ai_assistant modular block data from a Page (or Services) entry */
@@ -285,12 +314,23 @@ export const extractAiAssistantData = (entry) => {
 
     const techStacks = blocks.flatMap(collectTechStacksFromBlock);
     const first = blocks[0];
+    const firstStack = techStacks[0];
 
     return {
         uid: entry.uid,
         locale: entry.locale,
         title: entry.title,
         url: entry.url,
+        main_heading:
+            first.main_heading ||
+            firstStack?.main_heading ||
+            first.hero_title ||
+            entry.title,
+        text_subheading:
+            first.text_subheading ||
+            firstStack?.text_subheading ||
+            first.hero_description ||
+            entry.description,
         hero_title: first.hero_title || entry.title,
         hero_description: first.hero_description || entry.description,
         tech_stack: techStacks,

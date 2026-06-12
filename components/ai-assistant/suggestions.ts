@@ -1,29 +1,44 @@
-const CONTENT_STACK_PROMPTS = [
-  'What is a headless CMS and why use Contentstack?',
-  'How does Live Preview work with Next.js?',
-  'Explain modular blocks in a Page content type',
-  'Best practices for publishing entries to development',
-];
+import { SuggestedPromptItem, TechStackCms } from '@/typescript/ai-assistant';
 
-const SITECORE_PROMPTS = [
-  'What is Sitecore XM Cloud?',
-  'How does composable DXP differ from monolithic CMS?',
-  'When should I choose Sitecore AI features?',
-  'Compare headless delivery vs traditional Sitecore',
-];
+const CONTENT_STACK_HEADING_KEYS = [
+  'content_stack_heading_1',
+  'content_stack_heading_2',
+  'content_stack_heading_3',
+  'content_stack_heading_4',
+] as const;
 
-const GENERIC_PROMPTS = [
-  'Summarize the latest blog posts on this site',
-  'What is composable architecture in one paragraph?',
-  'Give me a 3-step CMS content workflow',
-];
+const SITECORE_HEADING_KEYS = [
+  'sitecore_heading_1',
+  'sitecore_heading_2',
+  'sitecore_heading_3',
+  'sitecore_heading_4',
+] as const;
 
-export function getSuggestionsForStack(stackId: string, stackName: string): string[] {
-  if (stackId === 'content-stack' || /content\s*stack/i.test(stackName)) {
-    return CONTENT_STACK_PROMPTS;
+function collectHeadingPrompts(
+  raw: TechStackCms,
+  keys: readonly string[],
+): SuggestedPromptItem[] {
+  return keys
+    .map((key) => {
+      const value = raw[key as keyof TechStackCms];
+      if (typeof value !== 'string' || !value.trim()) return null;
+      return {
+        text: value.trim(),
+        fieldKey: key as SuggestedPromptItem['fieldKey'],
+      };
+    })
+    .filter((item): item is SuggestedPromptItem => item !== null);
+}
+
+/** Resolve prompt chips from CMS heading fields per platform tab. */
+export function resolveSuggestedPrompts(raw: TechStackCms, stackId: string): SuggestedPromptItem[] {
+  if (stackId === 'content-stack') {
+    return collectHeadingPrompts(raw, CONTENT_STACK_HEADING_KEYS);
   }
-  if (stackId === 'sitecore-ai' || /sitecore/i.test(stackName)) {
-    return SITECORE_PROMPTS;
+
+  if (stackId === 'sitecore-ai') {
+    return collectHeadingPrompts(raw, SITECORE_HEADING_KEYS);
   }
-  return GENERIC_PROMPTS;
+
+  return [];
 }

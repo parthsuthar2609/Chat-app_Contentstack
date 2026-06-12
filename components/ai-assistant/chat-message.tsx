@@ -110,7 +110,9 @@ export default function ChatMessageBubble({
 
   return (
     <div
-      className={`ai-assistant__message-wrap ai-assistant__message-wrap--${message.role}`}
+      className={`ai-assistant__message-wrap ai-assistant__message-wrap--${message.role}${
+        isRegenerating ? ' is-regenerating' : ''
+      }`}
     >
       <div className={`ai-assistant__bubble ai-assistant__bubble--${message.role}`}>
         {message.role === 'assistant' ? (
