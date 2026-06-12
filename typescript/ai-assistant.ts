@@ -3,6 +3,8 @@ type EditableTag = Record<string, string>;
 type AdditionalParam = {
   hero_title?: EditableTag;
   hero_description?: EditableTag;
+  main_heading?: EditableTag;
+  text_subheading?: EditableTag;
   stack_name?: EditableTag;
   stack_slug?: EditableTag;
   system_prompt?: EditableTag;
@@ -17,6 +19,18 @@ type AdditionalParam = {
   search_placeholder?: EditableTag;
   send_button_text?: EditableTag;
   search_button_text?: EditableTag;
+  search_hint?: EditableTag;
+  clear_chat_cta?: EditableTag;
+  read_article_text?: EditableTag;
+  searching_button_text?: EditableTag;
+  content_stack_heading_1?: EditableTag;
+  content_stack_heading_2?: EditableTag;
+  content_stack_heading_3?: EditableTag;
+  content_stack_heading_4?: EditableTag;
+  sitecore_heading_1?: EditableTag;
+  sitecore_heading_2?: EditableTag;
+  sitecore_heading_3?: EditableTag;
+  sitecore_heading_4?: EditableTag;
 };
 
 export type StackEditKeys = {
@@ -27,6 +41,10 @@ export type StackEditKeys = {
   searchPlaceholder: keyof AdditionalParam;
   sendButtonText: keyof AdditionalParam;
   searchButtonText: keyof AdditionalParam;
+  searchHint: keyof AdditionalParam;
+  clearChatCta: keyof AdditionalParam;
+  readArticleText: keyof AdditionalParam;
+  searchingButtonText: keyof AdditionalParam;
 };
 
 export type TechStackCms = {
@@ -46,6 +64,20 @@ export type TechStackCms = {
   search_placeholder?: string;
   send_button_text?: string;
   search_button_text?: string;
+  main_heading?: string;
+  text_subheading?: string;
+  search_hint?: string;
+  clear_chat_cta?: string;
+  read_article_text?: string;
+  searching_button_text?: string;
+  content_stack_heading_1?: string;
+  content_stack_heading_2?: string;
+  content_stack_heading_3?: string;
+  content_stack_heading_4?: string;
+  sitecore_heading_1?: string;
+  sitecore_heading_2?: string;
+  sitecore_heading_3?: string;
+  sitecore_heading_4?: string;
   $?: AdditionalParam;
 };
 
@@ -63,6 +95,13 @@ export type TechStack = {
   search_placeholder?: string;
   send_button_text?: string;
   search_button_text?: string;
+  main_heading?: string;
+  text_subheading?: string;
+  search_hint?: string;
+  clear_chat_cta?: string;
+  read_article_text?: string;
+  searching_button_text?: string;
+  suggested_prompts: SuggestedPromptItem[];
   editKeys: StackEditKeys;
   $?: AdditionalParam;
 };
@@ -81,10 +120,17 @@ export type AiAssistantData = {
   url?: string;
   hero_title?: string;
   hero_description?: string;
+  main_heading?: string;
+  text_subheading?: string;
   tech_stacks?: TechStackCms[];
   tech_stack?: TechStackCms | TechStackCms[];
   seo?: AiAssistantSeo;
   $?: AdditionalParam;
+};
+
+export type SuggestedPromptItem = {
+  text: string;
+  fieldKey: keyof AdditionalParam;
 };
 
 export type AiAssistantMode = 'chat' | 'search';

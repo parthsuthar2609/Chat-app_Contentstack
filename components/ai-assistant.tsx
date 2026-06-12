@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ChatMessageBubble from '@/components/ai-assistant/chat-message';
 import SuggestedPrompts from '@/components/ai-assistant/suggested-prompts';
 import { resolveStackIconKey, StackIcon } from '@/components/ai-assistant/stack-icons';
+import { resolveSuggestedPrompts } from '@/components/ai-assistant/suggestions';
 import {
   AiAssistantData,
   AiAssistantMode,
@@ -57,10 +58,26 @@ function mapCmsToStack(
     search_placeholder: raw.search_placeholder || raw.blog_filter_tags,
     send_button_text: raw.send_button_text,
     search_button_text: raw.search_button_text,
+    main_heading: raw.main_heading,
+    text_subheading: raw.text_subheading,
+    search_hint: raw.search_hint,
+    clear_chat_cta: raw.clear_chat_cta,
+    read_article_text: raw.read_article_text,
+    searching_button_text: raw.searching_button_text,
+    suggested_prompts: resolveSuggestedPrompts(raw, id),
     editKeys,
     $: raw.$,
   };
 }
+
+const SHARED_STACK_EDIT_KEYS = {
+  sendButtonText: 'send_button_text' as const,
+  searchButtonText: 'search_button_text' as const,
+  searchHint: 'search_hint' as const,
+  clearChatCta: 'clear_chat_cta' as const,
+  readArticleText: 'read_article_text' as const,
+  searchingButtonText: 'searching_button_text' as const,
+};
 
 const CONTENT_STACK_EDIT_KEYS: StackEditKeys = {
   name: 'stack_name',
@@ -68,8 +85,7 @@ const CONTENT_STACK_EDIT_KEYS: StackEditKeys = {
   searchTabLabel: 'so_tagged',
   chatPlaceholder: 'google_site',
   searchPlaceholder: 'blog_filter_tags',
-  sendButtonText: 'send_button_text',
-  searchButtonText: 'search_button_text',
+  ...SHARED_STACK_EDIT_KEYS,
 };
 
 const SITECORE_EDIT_KEYS: StackEditKeys = {
@@ -78,8 +94,7 @@ const SITECORE_EDIT_KEYS: StackEditKeys = {
   searchTabLabel: 'so_tagged',
   chatPlaceholder: 'google_site',
   searchPlaceholder: 'blog_filter_tags',
-  sendButtonText: 'send_button_text',
-  searchButtonText: 'search_button_text',
+  ...SHARED_STACK_EDIT_KEYS,
 };
 
 function defaultEditKeys(raw: TechStackCms): StackEditKeys {
@@ -93,8 +108,7 @@ function defaultEditKeys(raw: TechStackCms): StackEditKeys {
         ? 'google_site'
         : 'google_site_restric',
     searchPlaceholder: raw.search_placeholder ? 'search_placeholder' : 'blog_filter_tags',
-    sendButtonText: 'send_button_text',
-    searchButtonText: 'search_button_text',
+    ...SHARED_STACK_EDIT_KEYS,
   };
 }
 
@@ -347,7 +361,11 @@ export default function AiAssistant({ data }: AiAssistantProps) {
     return null;
   }
 
-  const pageTitle = data.hero_title || data.title;
+  const pageTitle = data.main_heading || data.hero_title || data.title;
+  const pageSubheading =
+    data.text_subheading || currentStack?.text_subheading || data.hero_description;
+  const welcomeHeading =
+    data.main_heading || currentStack?.main_heading || currentStack?.chat_tab_label;
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
 
   return (
@@ -355,14 +373,18 @@ export default function AiAssistant({ data }: AiAssistantProps) {
       <div className='max-width ai-assistant__container'>
         {pageTitle && (
           <header className='ai-assistant__hero'>
-            <h1 className='ai-assistant__title' {...(data.$?.hero_title as {})}>
+            <h1
+              className='ai-assistant__title'
+              {...((data.$?.main_heading || data.$?.hero_title) as {})}
+            >
               {pageTitle}
             </h1>
-            {data.hero_description && (
-              <div className='ai-assistant__description' {...(data.$?.hero_description as {})}>
-                {typeof data.hero_description === 'string'
-                  ? parse(data.hero_description)
-                  : data.hero_description}
+            {pageSubheading && (
+              <div
+                className='ai-assistant__description'
+                {...((data.$?.text_subheading || data.$?.hero_description) as {})}
+              >
+                {typeof pageSubheading === 'string' ? parse(pageSubheading) : pageSubheading}
               </div>
             )}
           </header>
@@ -385,7 +407,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
         </div>
 
         {currentStack && (
-          <div className='ai-assistant__workspace'>
+          <div className='ai-assistant__workspace' key={activeStackId}>
             <div className='ai-assistant__mode-switch' role='tablist'>
               {chatEnabled && currentStack.chat_tab_label && (
                 <button
@@ -418,11 +440,14 @@ export default function AiAssistant({ data }: AiAssistantProps) {
             </div>
 
             {activeMode === 'chat' && chatEnabled && (
-              <div className='ai-assistant__chat-panel' role='tabpanel'>
+              <div className='ai-assistant__chat-panel ai-assistant__panel-enter' role='tabpanel' key='chat'>
                 <div className='ai-assistant__chat-toolbar'>
-                  {messages.length > 0 && (
+                  {messages.length > 0 && currentStack.clear_chat_cta && (
                     <button type='button' className='ai-assistant__toolbar-btn' onClick={clearChat}>
-                      <i className='fa-solid fa-trash-can' aria-hidden /> Clear chat
+                      <i className='fa-solid fa-trash-can' aria-hidden />
+                      <span {...(getEditTag(currentStack, 'clearChatCta') as {})}>
+                        {currentStack.clear_chat_cta}
+                      </span>
                     </button>
                   )}
                   {messages.length > 0 && (
@@ -438,17 +463,26 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                       <div className='ai-assistant__avatar'>
                         <StackIcon stackKey={resolveStackIconKey(currentStack.name, currentStack.slug)} />
                       </div>
-                      {currentStack.chat_tab_label && (
-                        <h2 {...(getEditTag(currentStack, 'chatTabLabel') as {})}>
-                          {currentStack.chat_tab_label}
+                      {welcomeHeading && (
+                        <h2
+                          {...((data.$?.main_heading ||
+                            currentStack.$?.main_heading ||
+                            getEditTag(currentStack, 'chatTabLabel')) as {})}
+                        >
+                          {welcomeHeading}
                         </h2>
                       )}
-                      <p className='ai-assistant__welcome-hint'>
-                        Answers are grounded in your Contentstack blog posts when relevant.
-                      </p>
+                      {pageSubheading && typeof pageSubheading === 'string' && (
+                        <p
+                          className='ai-assistant__welcome-hint'
+                          {...((data.$?.text_subheading || currentStack.$?.text_subheading) as {})}
+                        >
+                          {pageSubheading}
+                        </p>
+                      )}
                       <SuggestedPrompts
-                        stackId={currentStack.id}
-                        stackName={currentStack.name}
+                        suggestions={currentStack.suggested_prompts}
+                        editTags={currentStack.$}
                         disabled={isChatLoading}
                         onSelect={(prompt) => sendChatMessage(prompt)}
                       />
@@ -468,10 +502,12 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                         />
                       ))}
                       {isChatLoading && (
+                        <div className='ai-assistant__message-wrap ai-assistant__message-wrap--assistant ai-assistant__typing-wrap'>
                         <div className='ai-assistant__bubble ai-assistant__bubble--assistant ai-assistant__bubble--typing'>
                           <span className='ai-assistant__typing-dot' />
                           <span className='ai-assistant__typing-dot' />
                           <span className='ai-assistant__typing-dot' />
+                        </div>
                         </div>
                       )}
                     </div>
@@ -484,7 +520,10 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                   </p>
                 )}
 
-                <form className='ai-assistant__composer' onSubmit={handleSendChat}>
+                <form
+                  className={`ai-assistant__composer${isChatLoading ? ' is-sending' : ''}`}
+                  onSubmit={handleSendChat}
+                >
                   {currentStack.chat_placeholder && (
                     <input
                       type='text'
@@ -502,22 +541,28 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                     disabled={isChatLoading || !chatInput.trim()}
                   >
                     <i className='fa-solid fa-paper-plane' aria-hidden />
-                    <span {...(getEditTag(currentStack, 'sendButtonText') as {})}>
-                      {currentStack.send_button_text || 'Send'}
-                    </span>
+                    {currentStack.send_button_text && (
+                      <span {...(getEditTag(currentStack, 'sendButtonText') as {})}>
+                        {currentStack.send_button_text}
+                      </span>
+                    )}
                   </button>
                 </form>
               </div>
             )}
 
             {activeMode === 'search' && searchEnabled && (
-              <div className='ai-assistant__search-panel' role='tabpanel'>
+              <div className='ai-assistant__search-panel ai-assistant__panel-enter' role='tabpanel' key='search'>
                 {currentStack.search_tab_label && (
                   <div className='ai-assistant__search-hero'>
                     <h2 {...(getEditTag(currentStack, 'searchTabLabel') as {})}>
                       {currentStack.search_tab_label}
                     </h2>
-                    <p>Search your CMS blog posts — AI summarizes the best matches.</p>
+                    {currentStack.search_hint && (
+                      <p {...(getEditTag(currentStack, 'searchHint') as {})}>
+                        {currentStack.search_hint}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -538,11 +583,24 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                     className='ai-assistant__search-submit'
                     disabled={isSearchLoading || !searchQuery.trim()}
                   >
-                    <span {...(getEditTag(currentStack, 'searchButtonText') as {})}>
-                      {isSearchLoading
-                        ? 'Searching…'
-                        : currentStack.search_button_text || 'Search'}
-                    </span>
+                    {(() => {
+                      const label = isSearchLoading
+                        ? currentStack.searching_button_text || currentStack.search_button_text
+                        : currentStack.search_button_text;
+                      if (!label) return null;
+                      return (
+                        <span
+                          {...(getEditTag(
+                            currentStack,
+                            isSearchLoading && currentStack.searching_button_text
+                              ? 'searchingButtonText'
+                              : 'searchButtonText',
+                          ) as {})}
+                        >
+                          {label}
+                        </span>
+                      );
+                    })()}
                   </button>
                 </form>
 
@@ -553,7 +611,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
                 )}
 
                 {searchSummary && (
-                  <div className='ai-assistant__search-summary'>
+                  <div className='ai-assistant__search-summary ai-assistant__fade-rise'>
                     <i className='fa-solid fa-wand-magic-sparkles' aria-hidden />
                     <p>{searchSummary}</p>
                   </div>
@@ -561,15 +619,24 @@ export default function AiAssistant({ data }: AiAssistantProps) {
 
                 {searchResults.length > 0 && (
                   <ul className='ai-assistant__search-results'>
-                    {searchResults.map((item) => (
-                      <li key={item.uid} className='ai-assistant__search-card'>
+                    {searchResults.map((item, index) => (
+                      <li
+                        key={item.uid}
+                        className='ai-assistant__search-card ai-assistant__fade-rise'
+                        style={{ animationDelay: `${index * 0.08}s` }}
+                      >
                         <Link href={item.url} className='ai-assistant__search-card-title'>
                           {item.title}
                         </Link>
                         <p>{item.excerpt}…</p>
-                        <Link href={item.url} className='ai-assistant__search-card-link'>
-                          Read article <i className='fa-solid fa-arrow-right' aria-hidden />
-                        </Link>
+                        {currentStack.read_article_text && (
+                          <Link href={item.url} className='ai-assistant__search-card-link'>
+                            <span {...(getEditTag(currentStack, 'readArticleText') as {})}>
+                              {currentStack.read_article_text}
+                            </span>{' '}
+                            <i className='fa-solid fa-arrow-right' aria-hidden />
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -577,8 +644,8 @@ export default function AiAssistant({ data }: AiAssistantProps) {
 
                 {!isSearchLoading && !searchResults.length && !searchSummary && (
                   <SuggestedPrompts
-                    stackId={currentStack.id}
-                    stackName={currentStack.name}
+                    suggestions={currentStack.suggested_prompts}
+                    editTags={currentStack.$}
                     disabled={isSearchLoading}
                     onSelect={(prompt) => setSearchQuery(prompt)}
                   />
