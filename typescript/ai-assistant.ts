@@ -1,6 +1,6 @@
 type EditableTag = Record<string, string>;
 
-type AdditionalParam = {
+export type AdditionalParam = {
   hero_title?: EditableTag;
   hero_description?: EditableTag;
   main_heading?: EditableTag;
@@ -33,18 +33,18 @@ type AdditionalParam = {
   sitecore_heading_4?: EditableTag;
 };
 
-export type StackEditKeys = {
-  name: keyof AdditionalParam;
-  chatTabLabel: keyof AdditionalParam;
-  searchTabLabel: keyof AdditionalParam;
-  chatPlaceholder: keyof AdditionalParam;
-  searchPlaceholder: keyof AdditionalParam;
-  sendButtonText: keyof AdditionalParam;
-  searchButtonText: keyof AdditionalParam;
-  searchHint: keyof AdditionalParam;
-  clearChatCta: keyof AdditionalParam;
-  readArticleText: keyof AdditionalParam;
-  searchingButtonText: keyof AdditionalParam;
+export type StackEditTags = {
+  name?: EditableTag;
+  chatTabLabel?: EditableTag;
+  searchTabLabel?: EditableTag;
+  chatPlaceholder?: EditableTag;
+  searchPlaceholder?: EditableTag;
+  sendButtonText?: EditableTag;
+  searchButtonText?: EditableTag;
+  searchHint?: EditableTag;
+  clearChatCta?: EditableTag;
+  readArticleText?: EditableTag;
+  searchingButtonText?: EditableTag;
 };
 
 export type TechStackCms = {
@@ -102,7 +102,7 @@ export type TechStack = {
   read_article_text?: string;
   searching_button_text?: string;
   suggested_prompts: SuggestedPromptItem[];
-  editKeys: StackEditKeys;
+  editTags: StackEditTags;
   $?: AdditionalParam;
 };
 
