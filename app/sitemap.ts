@@ -11,7 +11,7 @@ function toSitemapEntry(url: string): MetadataRoute.Sitemap[number] {
   };
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default async function : Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_HOSTED_URL || 'http://localhost:3000';
 
   try {
