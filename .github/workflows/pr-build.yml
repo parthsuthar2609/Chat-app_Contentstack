@@ -1,0 +1,44 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      CONTENTSTACK_REGION: gcp-na
+      CONTENTSTACK_API_HOST: gcp-na-cdn.contentstack.com
+      CONTENTSTACK_APP_HOST: gcp-na-app.contentstack.com
+      CONTENTSTACK_PREVIEW_HOST: gcp-na-rest-preview.contentstack.com
+      CONTENTSTACK_API_KEY: ci-build-placeholder
+      CONTENTSTACK_DELIVERY_TOKEN: ci-build-placeholder
+      CONTENTSTACK_PREVIEW_TOKEN: ci-build-placeholder
+      CONTENTSTACK_ENVIRONMENT: development
+      CONTENTSTACK_BRANCH: main
+      CONTENTSTACK_LIVE_PREVIEW: 'false'
+      CONTENTSTACK_LIVE_EDIT_TAGS: 'false'
+      NEXT_PUBLIC_HOSTED_URL: http://localhost:3000
+      GEMINI_API_KEY: ci-build-placeholder
+      GEMINI_MODEL: gemini-2.5-flash-lite
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
