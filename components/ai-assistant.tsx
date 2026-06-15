@@ -12,12 +12,11 @@ import {
   ChatMessage,
   SearchResultItem,
 } from '@/typescript/ai-assistant';
+import { clearChatHistory, loadChatHistory, loadSearchHistory, saveChatHistory, saveSearchHistory } from '@/components/ai-assistant/utils';
 
 type AiAssistantProps = {
   data: AiAssistantData;
 };
-
-const STORAGE_KEY = 'ai-assistant-messages';
 
 export default function AiAssistant({ data }: AiAssistantProps) {
   const stacks = useMemo(() => normalizeStacks(data), [data]);
@@ -33,38 +32,40 @@ export default function AiAssistant({ data }: AiAssistantProps) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [chatError, setChatError] = useState('');
   const [searchError, setSearchError] = useState('');
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const chatBodyRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const stack = stacks.find((s) => s.id === activeStackId);
   const messages = messagesByStack[activeStackId] ?? [];
 
-  // Load saved chat from browser session (once)
+  // Load chat history from browser (once per tab)
   useEffect(() => {
     const saved: Record<string, ChatMessage[]> = {};
     stacks.forEach((s) => {
-      try {
-        const raw = sessionStorage.getItem(`${STORAGE_KEY}:${s.id}`);
-        if (raw) saved[s.id] = JSON.parse(raw);
-      } catch {
-        /* ignore */
-      }
+      const msgs = loadChatHistory(s.id);
+      if (msgs.length) saved[s.id] = msgs;
     });
     if (Object.keys(saved).length) setMessagesByStack(saved);
   }, [stacks]);
 
-  // Save chat when messages change
+  // Save chat history when messages change
   useEffect(() => {
-    if (!activeStackId || !messagesByStack[activeStackId]) return;
-    sessionStorage.setItem(
-      `${STORAGE_KEY}:${activeStackId}`,
-      JSON.stringify(messagesByStack[activeStackId]),
-    );
+    if (!activeStackId) return;
+    const msgs = messagesByStack[activeStackId];
+    if (msgs?.length) saveChatHistory(activeStackId, msgs);
   }, [messagesByStack, activeStackId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
     chatBodyRef.current?.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, chatLoading]);
+
+  // Load search history when tab changes
+  useEffect(() => {
+    if (activeStackId) setSearchHistory(loadSearchHistory(activeStackId));
+  }, [activeStackId]);
 
   if (!stacks.length || !stack) return null;
 
@@ -102,11 +103,14 @@ export default function AiAssistant({ data }: AiAssistantProps) {
 
     setChatError('');
     setChatLoading(true);
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
 
     try {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortRef.current.signal,
         body: JSON.stringify({
           message: messageText,
           history: history.map((m) => ({ role: m.role, content: m.content })),
@@ -134,10 +138,29 @@ export default function AiAssistant({ data }: AiAssistantProps) {
         ],
       }));
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setChatError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setChatLoading(false);
+      abortRef.current = null;
     }
+  }
+
+  function stopGenerating() {
+    abortRef.current?.abort();
+    setChatLoading(false);
+  }
+
+  function scrollToBottom() {
+    chatBodyRef.current?.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' });
+    setShowScrollBtn(false);
+  }
+
+  function handleChatScroll() {
+    const el = chatBodyRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    setShowScrollBtn(!nearBottom && messages.length > 0);
   }
 
   async function runSearch(e: React.FormEvent) {
@@ -166,6 +189,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
 
       setSearchResults(result.results || []);
       setSearchSummary(result.summary || '');
+      setSearchHistory(saveSearchHistory(activeStackId, query));
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : 'Search failed.');
     } finally {
@@ -185,7 +209,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
 
   function clearChat() {
     setMessagesByStack((prev) => ({ ...prev, [activeStackId]: [] }));
-    sessionStorage.removeItem(`${STORAGE_KEY}:${activeStackId}`);
+    clearChatHistory(activeStackId);
     setChatError('');
   }
 
@@ -258,7 +282,11 @@ export default function AiAssistant({ data }: AiAssistantProps) {
               chatInput={chatInput}
               chatError={chatError}
               isLoading={chatLoading}
+              showScrollBtn={showScrollBtn}
               chatBodyRef={chatBodyRef}
+              onScroll={handleChatScroll}
+              onScrollToBottom={scrollToBottom}
+              onStop={stopGenerating}
               onInputChange={setChatInput}
               onSend={(e) => {
                 e.preventDefault();
@@ -278,9 +306,15 @@ export default function AiAssistant({ data }: AiAssistantProps) {
               searchSummary={searchSummary}
               searchError={searchError}
               isLoading={searchLoading}
+              searchHistory={searchHistory}
               onQueryChange={setSearchQuery}
               onSearch={runSearch}
               onPromptSelect={setSearchQuery}
+              onHistorySelect={(q) => {
+                setSearchQuery(q);
+                setSearchResults([]);
+                setSearchSummary('');
+              }}
             />
           )}
         </div>

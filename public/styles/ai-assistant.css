@@ -351,6 +351,52 @@
   gap: 12px;
 }
 
+.ai-assistant__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-assistant__chat-body-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+}
+
+.ai-assistant__scroll-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #715cdd;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(113, 92, 221, 0.35);
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s ease, background 0.2s ease;
+  animation: ai-fade-rise 0.25s ease both;
+}
+
+.ai-assistant__scroll-btn:hover {
+  background: #5f4bc4;
+  transform: translateY(-2px);
+}
+
+.ai-assistant__msg-time {
+  display: block;
+  font-size: 10px;
+  opacity: 0.65;
+  margin-bottom: 6px;
+}
+
+.ai-assistant__bubble--user .ai-assistant__msg-time {
+  text-align: right;
+  opacity: 0.85;
+}
+
 .ai-assistant__toolbar-btn {
   display: inline-flex;
   align-items: center;
@@ -653,11 +699,51 @@
 
 .ai-assistant__composer {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   padding: 16px 20px 20px;
   border-top: 1px solid #e2e8f0;
   background: #fafbfc;
   transition: background 0.3s ease;
+}
+
+.ai-assistant__composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-assistant__composer-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ai-assistant__composer-textarea {
+  resize: none;
+  min-height: 48px;
+  max-height: 140px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.ai-assistant__composer-stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ai-assistant__composer-stop:hover {
+  background: #b91c1c;
 }
 
 .ai-assistant__composer.is-sending .ai-assistant__composer-send {
@@ -865,6 +951,57 @@
   cursor: not-allowed;
 }
 
+.ai-assistant__search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px auto;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.ai-assistant__search-history {
+  max-width: 640px;
+  margin: 0 auto 20px;
+  text-align: left;
+}
+
+.ai-assistant__search-history-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 10px;
+}
+
+.ai-assistant__search-history-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-assistant__search-history-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.ai-assistant__search-history-chip:hover {
+  border-color: #715cdd;
+  background: #f8f6ff;
+  color: #715cdd;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ai-assistant__hero,
   .ai-assistant__description,
@@ -929,6 +1066,15 @@
 
   .ai-assistant__composer {
     flex-direction: column;
+  }
+
+  .ai-assistant__composer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ai-assistant__composer-hint {
+    text-align: center;
   }
 
   .ai-assistant__search-bar {
