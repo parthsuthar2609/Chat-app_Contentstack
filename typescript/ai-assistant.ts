@@ -31,6 +31,7 @@ export type AdditionalParam = {
   sitecore_heading_2?: EditableTag;
   sitecore_heading_3?: EditableTag;
   sitecore_heading_4?: EditableTag;
+  enter_to_send?: EditableTag;
 };
 
 export type StackEditTags = {
@@ -45,6 +46,7 @@ export type StackEditTags = {
   clearChatCta?: EditableTag;
   readArticleText?: EditableTag;
   searchingButtonText?: EditableTag;
+  enterToSend?: EditableTag;
 };
 
 export type TechStackCms = {
@@ -70,6 +72,7 @@ export type TechStackCms = {
   clear_chat_cta?: string;
   read_article_text?: string;
   searching_button_text?: string;
+  enter_to_send?: string;
   content_stack_heading_1?: string;
   content_stack_heading_2?: string;
   content_stack_heading_3?: string;
@@ -101,6 +104,7 @@ export type TechStack = {
   clear_chat_cta?: string;
   read_article_text?: string;
   searching_button_text?: string;
+  enter_to_send?: string;
   suggested_prompts: SuggestedPromptItem[];
   editTags: StackEditTags;
   $?: AdditionalParam;
