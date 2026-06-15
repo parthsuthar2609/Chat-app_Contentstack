@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ChatMessage as ChatMessageType, ChatSource } from '@/typescript/ai-assistant';
+import { formatMessageTime } from '@/components/ai-assistant/utils';
 
 type ChatMessageProps = {
   message: ChatMessageType;
@@ -115,6 +116,11 @@ export default function ChatMessageBubble({
       }`}
     >
       <div className={`ai-assistant__bubble ai-assistant__bubble--${message.role}`}>
+        {message.createdAt && (
+          <time className='ai-assistant__msg-time' dateTime={new Date(message.createdAt).toISOString()}>
+            {formatMessageTime(message.createdAt)}
+          </time>
+        )}
         {message.role === 'assistant' ? (
           <div className='ai-assistant__md'>{renderMarkdown(message.content)}</div>
         ) : (

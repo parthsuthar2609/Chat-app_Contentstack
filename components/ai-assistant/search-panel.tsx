@@ -12,9 +12,11 @@ type SearchPanelProps = {
   searchSummary: string;
   searchError: string;
   isLoading: boolean;
+  searchHistory: string[];
   onQueryChange: (value: string) => void;
   onSearch: (e: React.FormEvent) => void;
   onPromptSelect: (prompt: string) => void;
+  onHistorySelect: (query: string) => void;
 };
 
 export default function SearchPanel({
@@ -24,9 +26,11 @@ export default function SearchPanel({
   searchSummary,
   searchError,
   isLoading,
+  searchHistory,
   onQueryChange,
   onSearch,
   onPromptSelect,
+  onHistorySelect,
 }: SearchPanelProps) {
   const searchButtonLabel = isLoading
     ? stack.searching_button_text || stack.search_button_text
@@ -71,6 +75,34 @@ export default function SearchPanel({
           )}
         </button>
       </form>
+
+      {isLoading && (
+        <div className='ai-assistant__search-loading' aria-live='polite'>
+          <span className='ai-assistant__typing-dot' />
+          <span className='ai-assistant__typing-dot' />
+          <span className='ai-assistant__typing-dot' />
+          <span>Searching blogs…</span>
+        </div>
+      )}
+
+      {!isLoading && searchHistory.length > 0 && !searchResults.length && !searchSummary && (
+        <div className='ai-assistant__search-history'>
+          <p className='ai-assistant__search-history-label'>Recent searches</p>
+          <div className='ai-assistant__search-history-chips'>
+            {searchHistory.map((item) => (
+              <button
+                key={item}
+                type='button'
+                className='ai-assistant__search-history-chip'
+                onClick={() => onHistorySelect(item)}
+              >
+                <i className='fa-solid fa-clock-rotate-left' aria-hidden />
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {searchError && (
         <p className='ai-assistant__chat-error' role='alert'>
