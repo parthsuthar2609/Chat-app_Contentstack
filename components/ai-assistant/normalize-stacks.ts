@@ -44,6 +44,7 @@ function pickEditTags($: AdditionalParam | undefined, fields: FieldMap): StackEd
     clearChatCta: $?.clear_chat_cta,
     readArticleText: $?.read_article_text,
     searchingButtonText: $?.searching_button_text,
+    enterToSend: $?.enter_to_send,
   };
 }
 
@@ -73,6 +74,7 @@ function toStack(
     search_hint: raw.search_hint,
     clear_chat_cta: raw.clear_chat_cta,
     read_article_text: raw.read_article_text,
+    enter_to_send: raw.enter_to_send,
     suggested_prompts: resolveSuggestedPrompts(raw, id),
     editTags: pickEditTags(raw.$, fields),
     $: raw.$,

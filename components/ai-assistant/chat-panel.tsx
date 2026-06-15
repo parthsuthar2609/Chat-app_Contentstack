@@ -195,7 +195,11 @@ export default function ChatPanel({
           />
         )}
         <div className='ai-assistant__composer-actions'>
-          <span className='ai-assistant__composer-hint'>Enter to send · Shift+Enter for new line</span>
+          {stack.enter_to_send && (
+            <span className='ai-assistant__composer-hint' {...(stack.editTags.enterToSend as {})}>
+              {stack.enter_to_send}
+            </span>
+          )}
           {isLoading ? (
             <button type='button' className='ai-assistant__composer-stop' onClick={onStop}>
               <i className='fa-solid fa-stop' aria-hidden /> Stop
