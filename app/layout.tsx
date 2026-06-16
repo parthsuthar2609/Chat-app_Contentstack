@@ -26,8 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('cs-theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`,
+          }}
+        />
         <link rel='preconnect' href='https://fonts.gstatic.com' />
         <link
           href='https://fonts.googleapis.com/css?family=Inter&display=swap'
@@ -48,9 +53,11 @@ export default function RootLayout({
         />
         <link rel='stylesheet' href="/styles/globals.css" />
         <link rel='stylesheet' href="/styles/style.css" />
-        <link rel='stylesheet' href="/styles/header.css" />
+        <link rel='stylesheet' href="/styles/theme.css" />
         <link rel='stylesheet' href="/styles/ai-assistant.css" />
         <link rel='stylesheet' href="/styles/third-party.css" />
+        <link rel='stylesheet' href="/styles/main-theme.css" />
+        <link rel='stylesheet' href="/styles/header.css" />
       </head>
       <body className={inter.className}>
         <Header />
