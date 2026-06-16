@@ -30,10 +30,11 @@ type BloglistProps = {
 }
 
 function BlogList({ bloglist }: { bloglist: BloglistProps }) {
+  const author = bloglist.author?.[0];
 
-  let body: string = bloglist.body && bloglist.body.substr(0, 300);
+  let body: string = typeof bloglist.body === 'string' ? bloglist.body.substr(0, 300) : '';
   const stringLength = body?.lastIndexOf(' ');
-  body = `${body?.substr(0, Math.min(body.length, stringLength))}...`;
+  body = body ? `${body?.substr(0, Math.min(body.length, stringLength))}...` : '';
   return (
     <div className='blog-list'>
       {bloglist.featured_image && (
@@ -56,10 +57,12 @@ function BlogList({ bloglist }: { bloglist: BloglistProps }) {
           <strong {...bloglist.$?.date as {}}>
             {moment(bloglist.date).format('ddd, MMM D YYYY')}
           </strong>
-          ,{" "}
-          <strong {...bloglist.author[0].$?.title}>
-            {bloglist.author[0].title}
-          </strong>
+          {author?.title && (
+            <>
+              ,{' '}
+              <strong {...author.$?.title as {}}>{author.title}</strong>
+            </>
+          )}
         </p>
         <div {...bloglist.$?.body as {}}>{parse(body)}</div>
         {bloglist.url ? (
