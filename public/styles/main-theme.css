@@ -1,0 +1,355 @@
+/* Main-content-only theme overrides (header/footer excluded) */
+
+@keyframes cs-card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cs-section-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mainClass a {
+  color: var(--cs-text);
+  transition: color var(--cs-transition);
+}
+
+.mainClass p {
+  color: var(--cs-text-secondary);
+}
+
+.mainClass h1,
+.mainClass h2,
+.mainClass h3,
+.mainClass h4 {
+  color: var(--cs-text);
+  transition: color var(--cs-transition);
+}
+
+/* ── Buttons ── */
+.mainClass .primary-btn {
+  background: var(--cs-accent);
+  color: var(--cs-on-accent);
+}
+
+.mainClass .secondary-btn {
+  border-color: var(--cs-accent);
+  color: var(--cs-accent);
+}
+
+.mainClass .tertiary-btn {
+  background: var(--cs-bg-elevated) !important;
+  color: var(--cs-accent);
+  border: 1px solid var(--cs-border);
+}
+
+/* ── Hero (keep purple gradient in both themes) ── */
+.mainClass .hero-banner {
+  background: linear-gradient(135deg, #6c5ce7 0%, #8b7cf7 50%, #a78bfa 100%) !important;
+  color: #ffffff !important;
+}
+
+.mainClass .hero-banner h1,
+.mainClass .hero-banner h2,
+.mainClass .hero-banner p,
+.mainClass .hero-banner .home-content,
+.mainClass .hero-banner .home-content p,
+.mainClass .hero-banner .hero-description {
+  color: #ffffff !important;
+}
+
+/* ── Icon cards (full dark-theme support) ── */
+.mainClass .icon-cards-section {
+  background: var(--cs-bg);
+  animation: cs-section-fade 0.6s var(--cs-ease) both;
+}
+
+.mainClass .icon-cards-section__title {
+  color: var(--cs-text) !important;
+}
+
+.mainClass .icon-cards-section__description,
+.mainClass .icon-cards-section__description p {
+  color: var(--cs-text-secondary) !important;
+}
+
+.mainClass .icon-cards-grid__item {
+  background: transparent;
+  border: none;
+}
+
+.mainClass .icon-cards-card {
+  background: var(--cs-bg-elevated) !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: var(--cs-radius) !important;
+  box-shadow: var(--cs-shadow-sm);
+  transition: background var(--cs-transition), border-color var(--cs-transition),
+    box-shadow var(--cs-transition), transform 0.35s var(--cs-ease);
+  animation: cs-card-rise 0.55s var(--cs-ease) both;
+}
+
+.mainClass .icon-cards-grid__item:nth-child(1) .icon-cards-card { animation-delay: 0.04s; }
+.mainClass .icon-cards-grid__item:nth-child(2) .icon-cards-card { animation-delay: 0.1s; }
+.mainClass .icon-cards-grid__item:nth-child(3) .icon-cards-card { animation-delay: 0.16s; }
+.mainClass .icon-cards-grid__item:nth-child(4) .icon-cards-card { animation-delay: 0.22s; }
+.mainClass .icon-cards-grid__item:nth-child(5) .icon-cards-card { animation-delay: 0.28s; }
+.mainClass .icon-cards-grid__item:nth-child(6) .icon-cards-card { animation-delay: 0.34s; }
+
+.mainClass .icon-cards-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--cs-accent-light) !important;
+  box-shadow: var(--cs-shadow-accent);
+}
+
+.mainClass .icon-cards-card__icon-wrap {
+  background: var(--cs-accent-soft) !important;
+  box-shadow: 0 0 0 1px var(--cs-accent-ring) inset;
+  transition: background var(--cs-transition), box-shadow var(--cs-transition), transform 0.35s var(--cs-ease);
+}
+
+.mainClass .icon-cards-card:hover .icon-cards-card__icon-wrap {
+  transform: scale(1.06);
+  box-shadow: 0 0 24px var(--cs-accent-glow);
+}
+
+.mainClass .icon-cards-card__title {
+  color: var(--cs-text) !important;
+}
+
+.mainClass .icon-cards-card__text,
+.mainClass .icon-cards-card__text p {
+  color: var(--cs-text-secondary) !important;
+}
+
+[data-theme='dark'] .mainClass .icon-cards-card {
+  background: linear-gradient(160deg, var(--cs-bg-elevated) 0%, var(--cs-bg-muted) 100%) !important;
+  box-shadow: var(--cs-shadow), 0 0 0 1px rgba(139, 124, 247, 0.06) inset;
+}
+
+[data-theme='dark'] .mainClass .icon-cards-card:hover {
+  box-shadow: var(--cs-shadow-accent), 0 0 32px rgba(139, 124, 247, 0.12);
+}
+
+[data-theme='dark'] .mainClass .icon-cards-card__icon-wrap {
+  background: rgba(139, 124, 247, 0.12) !important;
+}
+
+/* ── Generic cards & featured blocks ── */
+.mainClass .cards {
+  background: var(--cs-bg-elevated) !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: var(--cs-radius) !important;
+  color: var(--cs-text);
+  box-shadow: var(--cs-shadow-sm);
+  transition: background var(--cs-transition), border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+.mainClass .cards:hover {
+  box-shadow: var(--cs-shadow);
+  border-color: var(--cs-accent-light) !important;
+}
+
+.mainClass .cards h3,
+.mainClass .cards h4,
+.mainClass .cards p {
+  color: var(--cs-text-secondary);
+}
+
+.mainClass .content-section {
+  background: var(--cs-bg-elevated);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  padding: 20px;
+  box-shadow: var(--cs-shadow-sm);
+  transition: background var(--cs-transition), border-color var(--cs-transition);
+}
+
+.mainClass .content-section a {
+  color: var(--cs-accent);
+}
+
+/* ── Sections ── */
+.mainClass .home-advisor-section {
+  background: var(--cs-bg-elevated) !important;
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: var(--cs-shadow-sm);
+  transition: background var(--cs-transition), border-color var(--cs-transition);
+}
+
+.mainClass .member-main-section,
+.mainClass .demo-section {
+  background: var(--cs-bg-muted) !important;
+  color: var(--cs-text);
+  transition: background var(--cs-transition);
+}
+
+.mainClass .featured-blog,
+.mainClass .featured-gallery {
+  background: var(--cs-bg-elevated) !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: var(--cs-radius);
+  overflow: hidden;
+  box-shadow: var(--cs-shadow-sm);
+  transition: background var(--cs-transition), border-color var(--cs-transition), box-shadow var(--cs-transition),
+    transform 0.35s var(--cs-ease);
+}
+
+.mainClass .featured-blog:hover,
+.mainClass .featured-gallery:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--cs-shadow);
+  border-color: var(--cs-accent-light) !important;
+}
+
+.mainClass .featured-content h3 {
+  color: var(--cs-text) !important;
+}
+
+.mainClass .featured-content p,
+.mainClass .featured-content > p {
+  color: var(--cs-text-secondary) !important;
+}
+
+.mainClass .community-section,
+.mainClass .section-bucket,
+.mainClass .about-section-bucket,
+.mainClass .section,
+.mainClass .card-section {
+  color: var(--cs-text);
+}
+
+.mainClass .bucket-content p,
+.mainClass .section-content {
+  color: var(--cs-text-secondary);
+}
+
+.mainClass .about-content {
+  color: var(--cs-text) !important;
+}
+
+.mainClass .about-desc {
+  color: var(--cs-text-secondary) !important;
+}
+
+/* ── Blog ── */
+.mainClass .blog-content h3 {
+  color: var(--cs-text);
+}
+
+.mainClass .blog-content,
+.mainClass .blog-detail,
+.mainClass .blog-detail p {
+  color: var(--cs-text-secondary);
+}
+
+.mainClass .blog-detail h2 {
+  color: var(--cs-text);
+}
+
+.mainClass .blog-list > a {
+  background: var(--cs-bg-muted);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius);
+  transition: background var(--cs-transition), border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+.mainClass .blog-list > a:hover {
+  box-shadow: var(--cs-shadow-sm);
+  border-color: var(--cs-accent-light);
+}
+
+.mainClass .blog-column-left .blog-content a,
+.mainClass .blogpost-readmore {
+  color: var(--cs-accent);
+}
+
+.mainClass .contact-form {
+  background: var(--cs-bg-muted);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-lg);
+}
+
+.mainClass .text-field textarea {
+  background: var(--cs-bg-elevated) !important;
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border) !important;
+}
+
+/* ── Ad banner ── */
+.mainClass .ad-banner {
+  color: #ffffff;
+}
+
+/* ── Skeleton ── */
+[data-theme='dark'] .mainClass .react-loading-skeleton {
+  --base-color: #1e293b;
+  --highlight-color: #2d3a52;
+}
+
+/* ── Bootstrap & utility classes inside main ── */
+[data-theme='dark'] .mainClass .card,
+[data-theme='dark'] .mainClass .bg-white,
+[data-theme='dark'] .mainClass .bg-light {
+  background-color: var(--cs-bg-elevated) !important;
+  color: var(--cs-text);
+  border-color: var(--cs-border);
+}
+
+[data-theme='dark'] .mainClass .text-dark {
+  color: var(--cs-text) !important;
+}
+
+/* ── AI Assistant workspace cards ── */
+[data-theme='dark'] .mainClass .ai-assistant__workspace {
+  background: linear-gradient(160deg, var(--cs-bg-elevated) 0%, var(--cs-bg-muted) 100%);
+  border-color: var(--cs-border);
+  box-shadow: var(--cs-shadow), 0 0 0 1px rgba(139, 124, 247, 0.08) inset;
+}
+
+[data-theme='dark'] .mainClass .ai-assistant__platform-tabs {
+  background: var(--cs-bg-muted);
+  border-color: var(--cs-border);
+}
+
+[data-theme='dark'] .mainClass .ai-assistant__search-card {
+  background: var(--cs-bg-muted) !important;
+  border-color: var(--cs-border) !important;
+}
+
+[data-theme='dark'] .mainClass .ai-assistant__search-card:hover {
+  border-color: var(--cs-accent) !important;
+  box-shadow: 0 8px 24px rgba(139, 124, 247, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mainClass .icon-cards-card,
+  .mainClass .icon-cards-section,
+  .mainClass .featured-blog,
+  .mainClass .featured-gallery {
+    animation: none !important;
+  }
+
+  .theme-toggle__rays,
+  .theme-toggle__star,
+  .theme-toggle.is-switching .theme-toggle__thumb,
+  .theme-toggle.is-switching .theme-toggle__glow {
+    animation: none !important;
+  }
+}
