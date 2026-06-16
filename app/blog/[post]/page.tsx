@@ -35,8 +35,8 @@ export default function BlogPost() {
         onEntryChange(() => fetchData());
     }, []);
 
-    const { post, banner } = getPost; 
-    
+    const { post, banner } = getPost;
+    const author = post?.author?.[0];
     return (
         <>
             {blogPost?.seo && blogPost.seo.enable_search_indexing && metaData(blogPost.seo)}
@@ -62,10 +62,13 @@ export default function BlogPost() {
                     )}
                     {post && post.date ? (
                         <p {...post.$?.date as {}}>
-                            {moment(post.date).format('ddd, MMM D YYYY')},{' '}
-                            <strong {...post.author[0].$?.title as {}}>
-                                {post.author[0].title}
-                            </strong>
+                            {moment(post.date).format('ddd, MMM D YYYY')}
+                            {author?.title && (
+                                <>
+                                    ,{' '}
+                                    <strong {...author.$?.title as {}}>{author.title}</strong>
+                                </>
+                            )}
                         </p>
                     ) : (
                         <p>

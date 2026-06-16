@@ -1,7 +1,18 @@
 import Stack from "../contentstack-sdk";
-import { addEditableTags } from "@contentstack/utils";
+import { addEditableTags, jsonToHTML } from "@contentstack/utils";
 
 const liveEdit = process.env.CONTENTSTACK_LIVE_EDIT_TAGS === "true";
+
+const rteRenderOption = { span: (node, next) => next(node.children) };
+
+/** Blog body is JSON RTE in preview — convert to HTML so parse()/substr() work. */
+const ensureBlogHtml = (entry) => {
+    if (!entry) return entry;
+    if (entry.body && typeof entry.body !== "string") {
+        jsonToHTML({ entry: [[entry]], paths: ["body"], renderOption: rteRenderOption });
+    }
+    return entry;
+};
 
 export const getHeaderRes = async () => {
     const response = await Stack.getEntry({
@@ -196,6 +207,7 @@ export const getBlogListRes = async () => {
         referenceFieldPath: ["author", "related_post"],
         jsonRtePath: ["body"],
     });
+    response[0].forEach(ensureBlogHtml);
     liveEdit &&
         response[0].forEach((entry) => addEditableTags(entry, "blog_post", true));
     return response[0];
@@ -210,6 +222,7 @@ export const getBlogPostRes = async (entryUrl) => {
     });
     const entry = pickEntry(response);
     if (!entry) return undefined;
+    ensureBlogHtml(entry);
     liveEdit && addEditableTags(entry, "blog_post", true);
     return entry;
 };
