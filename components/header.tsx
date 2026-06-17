@@ -8,6 +8,7 @@ import { onEntryChange } from '../contentstack-sdk';
 import { getAllEntries, getHeaderRes } from '../helper';
 import Skeleton from 'react-loading-skeleton';
 import ThemeToggle from './theme-toggle';
+import LanguageSwitcher from './language-switcher';
 import { HeaderProps, Entry, NavLinks } from '../typescript/layout';
 
 export default function Header() {
@@ -108,40 +109,20 @@ export default function Header() {
       )}
 
       <div className="max-width header-div">
-        <div className="header-bar">
-          <div className="wrapper-logo">
-            {headerData ? (
-              <Link href="/" className="logo-tag" title="Contentstack" onClick={closeMobileMenu}>
-                <img
-                  className="logo"
-                  src={headerData.logo.url}
-                  alt={headerData.title}
-                  title={headerData.title}
-                  {...(headerData.logo.$?.url as {})}
-                />
-              </Link>
-            ) : (
-              <Skeleton width={160} height={48} />
-            )}
-          </div>
-
-          <div className="header-actions">
-            <ThemeToggle />
-            <button
-              type="button"
-              className="menu-toggle"
-              onClick={toggleMobileMenu}
-              aria-expanded={menuOpen}
-              aria-controls="main-navigation"
-              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            >
-              <span className="menu-toggle__icon" aria-hidden>
-                <span className="menu-toggle__line" />
-                <span className="menu-toggle__line" />
-                <span className="menu-toggle__line" />
-              </span>
-            </button>
-          </div>
+        <div className="wrapper-logo">
+          {headerData ? (
+            <Link href="/" className="logo-tag" title="Contentstack" onClick={closeMobileMenu}>
+              <img
+                className="logo"
+                src={headerData.logo.url}
+                alt={headerData.title}
+                title={headerData.title}
+                {...(headerData.logo.$?.url as {})}
+              />
+            </Link>
+          ) : (
+            <Skeleton width={140} height={36} />
+          )}
         </div>
 
         <nav
@@ -170,11 +151,30 @@ export default function Header() {
               })
             ) : (
               <li className="nav-li nav-li--skeleton">
-                <Skeleton width="100%" height={36} />
+                <Skeleton width="100%" height={32} />
               </li>
             )}
           </ul>
         </nav>
+
+        <div className="header-actions">
+          <LanguageSwitcher />
+          <ThemeToggle />
+          <button
+            type="button"
+            className="menu-toggle"
+            onClick={toggleMobileMenu}
+            aria-expanded={menuOpen}
+            aria-controls="main-navigation"
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          >
+            <span className="menu-toggle__icon" aria-hidden>
+              <span className="menu-toggle__line" />
+              <span className="menu-toggle__line" />
+              <span className="menu-toggle__line" />
+            </span>
+          </button>
+        </div>
       </div>
 
       {menuOpen && (

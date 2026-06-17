@@ -72,21 +72,38 @@ body {
     linear-gradient(180deg, #0b0f1a 0%, #0d1324 50%, #0b0f1a 100%);
 }
 
-/* Smooth animation while toggling */
+/* Smooth animation while toggling theme */
 .mainClass.is-theme-animating,
 .mainClass.is-theme-animating * {
   transition: background-color var(--cs-transition), color var(--cs-transition),
     border-color var(--cs-transition), box-shadow var(--cs-transition) !important;
 }
 
-/* Theme toggle — premium pill switch (header only, always light chrome) */
+/* Smooth fade when switching main content language */
+.mainClass.is-locale-animating {
+  animation: main-locale-fade 0.48s var(--cs-ease) both;
+}
+
+@keyframes main-locale-fade {
+  from {
+    opacity: 0.65;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Theme toggle — larger pill switch (header only, always light chrome) */
 .theme-toggle {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
-  height: 32px;
+  width: 68px;
+  height: 38px;
   padding: 0;
   border: 1px solid #e2e8f0;
   border-radius: 999px;
@@ -94,7 +111,8 @@ body {
   cursor: pointer;
   flex-shrink: 0;
   overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.35s ease, transform 0.2s ease;
+  transition: border-color 0.35s var(--cs-ease), box-shadow 0.4s var(--cs-ease),
+    transform 0.25s var(--cs-ease), background 0.35s var(--cs-ease);
 }
 
 .theme-toggle:hover {
@@ -142,25 +160,25 @@ body {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
   color: #f59e0b;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease, color 0.35s ease,
-    box-shadow 0.35s ease;
+  transition: transform 0.5s var(--cs-ease), background 0.4s var(--cs-ease), color 0.4s var(--cs-ease),
+    box-shadow 0.4s var(--cs-ease);
   z-index: 2;
 }
 
 .theme-toggle.is-dark .theme-toggle__thumb {
-  transform: translateX(26px);
-  background: linear-gradient(145deg, #312e81 0%, #1e1b4b 100%);
+  transform: translateX(32px);
+  background: linear-gradient(145deg, #3730a3 0%, #1e1b4b 100%);
   color: #c4b5fd;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 12px rgba(139, 124, 247, 0.35);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45), 0 0 16px rgba(139, 124, 247, 0.4);
 }
 
 .theme-toggle.is-switching .theme-toggle__thumb {
@@ -168,8 +186,8 @@ body {
 }
 
 .theme-toggle__icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 
@@ -177,20 +195,20 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
-  opacity: 0.35;
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+  transition: opacity 0.4s var(--cs-ease), transform 0.4s var(--cs-ease);
   pointer-events: none;
 }
 
 .theme-toggle__bg-icon--sun {
-  left: 8px;
+  left: 10px;
   color: #f59e0b;
 }
 
 .theme-toggle__bg-icon--moon {
-  right: 8px;
+  right: 10px;
   color: #94a3b8;
 }
 
@@ -244,8 +262,8 @@ body {
 
 @keyframes theme-thumb-bounce {
   0% { transform: translateX(var(--thumb-x, 0)) scale(1); }
-  35% { transform: translateX(var(--thumb-x, 0)) scale(1.12); }
-  100% { transform: translateX(var(--thumb-x-end, 26px)) scale(1); }
+  35% { transform: translateX(var(--thumb-x, 0)) scale(1.1); }
+  100% { transform: translateX(var(--thumb-x-end, 32px)) scale(1); }
 }
 
 .theme-toggle:not(.is-dark).is-switching .theme-toggle__thumb {
@@ -254,8 +272,8 @@ body {
 }
 
 .theme-toggle.is-dark.is-switching .theme-toggle__thumb {
-  --thumb-x: 26px;
-  --thumb-x-end: 26px;
+  --thumb-x: 32px;
+  --thumb-x-end: 32px;
 }
 
 @keyframes theme-sun-spin {
@@ -272,4 +290,20 @@ body {
 @keyframes theme-star-twinkle {
   0%, 100% { opacity: 0.4; transform: scale(0.85); }
   50% { opacity: 1; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mainClass.is-locale-animating,
+  .mainClass.is-theme-animating,
+  .mainClass.is-theme-animating * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .theme-toggle__rays,
+  .theme-toggle__star,
+  .theme-toggle.is-switching .theme-toggle__thumb,
+  .theme-toggle.is-switching .theme-toggle__glow {
+    animation: none !important;
+  }
 }
