@@ -125,55 +125,57 @@ export default function Header() {
           )}
         </div>
 
-        <nav
-          id="main-navigation"
-          className={`menu${menuOpen ? ' is-open' : ''}`}
-          aria-label="Main navigation"
-        >
-          <ul className="nav-ul header-ul">
-            {headerData ? (
-              headerData.navigation_menu.map((list) => {
-                const href = list.page_reference[0].url;
-                const isActive = pathname === href;
-                return (
-                  <li key={list.label} className="nav-li">
-                    <Link
-                      href={href}
-                      className={isActive ? 'active' : ''}
-                      onClick={closeMobileMenu}
-                      aria-current={isActive ? 'page' : undefined}
-                      {...(list.page_reference[0].$?.url as {})}
-                    >
-                      {list.label}
-                    </Link>
-                  </li>
-                );
-              })
-            ) : (
-              <li className="nav-li nav-li--skeleton">
-                <Skeleton width="100%" height={32} />
-              </li>
-            )}
-          </ul>
-        </nav>
-
-        <div className="header-actions">
-          <LanguageSwitcher />
-          <ThemeToggle />
-          <button
-            type="button"
-            className="menu-toggle"
-            onClick={toggleMobileMenu}
-            aria-expanded={menuOpen}
-            aria-controls="main-navigation"
-            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        <div className="header-right">
+          <nav
+            id="main-navigation"
+            className={`menu${menuOpen ? ' is-open' : ''}`}
+            aria-label="Main navigation"
           >
-            <span className="menu-toggle__icon" aria-hidden>
-              <span className="menu-toggle__line" />
-              <span className="menu-toggle__line" />
-              <span className="menu-toggle__line" />
-            </span>
-          </button>
+            <ul className="nav-ul header-ul">
+              {headerData ? (
+                headerData.navigation_menu.map((list) => {
+                  const href = list.page_reference[0].url;
+                  const isActive = pathname === href;
+                  return (
+                    <li key={list.label} className="nav-li">
+                      <Link
+                        href={href}
+                        className={isActive ? 'active' : ''}
+                        onClick={closeMobileMenu}
+                        aria-current={isActive ? 'page' : undefined}
+                        {...(list.page_reference[0].$?.url as {})}
+                      >
+                        {list.label}
+                      </Link>
+                    </li>
+                  );
+                })
+              ) : (
+                <li className="nav-li nav-li--skeleton">
+                  <Skeleton width="100%" height={32} />
+                </li>
+              )}
+            </ul>
+          </nav>
+
+          <div className="header-actions">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <button
+              type="button"
+              className="menu-toggle"
+              onClick={toggleMobileMenu}
+              aria-expanded={menuOpen}
+              aria-controls="main-navigation"
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            >
+              <span className="menu-toggle__icon" aria-hidden>
+                <span className="menu-toggle__line" />
+                <span className="menu-toggle__line" />
+                <span className="menu-toggle__line" />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
