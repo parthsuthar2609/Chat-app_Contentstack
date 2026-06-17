@@ -7,16 +7,18 @@ import { Page } from '@/typescript/pages';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { useLocale } from '@/hooks/use-locale';
 
 export default function Home() {
   const entryUrl = usePathname();
+  const { locale } = useLocale();
   const [entry, setEntry] = useState<Page | undefined>(undefined);
   const [loadFailed, setLoadFailed] = useState(false);
 
   async function fetchData() {
     try {
       setLoadFailed(false);
-      const entryRes = await getPageRes(entryUrl);
+      const entryRes = await getPageRes(entryUrl, locale);
       if (!entryRes) {
         console.error(
           '[Contentstack] No entry found for',
@@ -42,7 +44,7 @@ export default function Home() {
   useEffect(() => {
     fetchData();
     onEntryChange(() => fetchData());
-  }, [entryUrl]);
+  }, [entryUrl, locale]);
 
   const pageComponents = getPageComponentsFromEntry(entry);
 

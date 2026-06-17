@@ -73,9 +73,10 @@ export default {
    * @param {* Json RTE path} jsonRtePath
    *
    */
-  getEntry({ contentTypeUid, referenceFieldPath, jsonRtePath }) {
+  getEntry({ contentTypeUid, referenceFieldPath, jsonRtePath, locale }) {
     return new Promise((resolve, reject) => {
       const query = Stack.ContentType(contentTypeUid).Query();
+      if (locale) query.language(locale);
       if (referenceFieldPath) query.includeReference(referenceFieldPath);
       query
         .toJSON()
@@ -107,10 +108,11 @@ export default {
    * @returns
    */
   getEntryByUrl({
-    contentTypeUid, entryUrl, referenceFieldPath, jsonRtePath, urlField = 'url',
+    contentTypeUid, entryUrl, referenceFieldPath, jsonRtePath, urlField = 'url', locale,
   }) {
     return new Promise((resolve, reject) => {
       const blogQuery = Stack.ContentType(contentTypeUid).Query();
+      if (locale) blogQuery.language(locale);
       if (referenceFieldPath?.length) blogQuery.includeReference(referenceFieldPath);
       blogQuery.toJSON();
       const data = blogQuery.where(urlField, `${entryUrl}`)?.find();

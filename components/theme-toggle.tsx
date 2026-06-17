@@ -18,7 +18,7 @@ export function applyTheme(theme: Theme) {
   const main = document.querySelector('.mainClass');
   if (main) {
     main.classList.add('is-theme-animating');
-    window.setTimeout(() => main.classList.remove('is-theme-animating'), 450);
+    window.setTimeout(() => main.classList.remove('is-theme-animating'), 520);
   }
 }
 

@@ -14,32 +14,35 @@ const ensureBlogHtml = (entry) => {
     return entry;
 };
 
-export const getHeaderRes = async () => {
+export const getHeaderRes = async (locale) => {
     const response = await Stack.getEntry({
         contentTypeUid: "header",
         referenceFieldPath: ["navigation_menu.page_reference"],
         jsonRtePath: ["notification_bar.announcement_text"],
+        locale,
     });
 
     liveEdit && addEditableTags(response[0][0], "header", true);
     return response[0][0];
 };
 
-export const getFooterRes = async () => {
+export const getFooterRes = async (locale) => {
     const response = await Stack.getEntry({
         contentTypeUid: "footer",
         referenceFieldPath: undefined,
         jsonRtePath: ["copyright"],
+        locale,
     });
     liveEdit && addEditableTags(response[0][0], "footer", true);
     return response[0][0];
 };
 
-export const getAllEntries = async () => {
+export const getAllEntries = async (locale) => {
     const response = await Stack.getEntry({
         contentTypeUid: "page",
         referenceFieldPath: undefined,
         jsonRtePath: undefined,
+        locale,
     });
     liveEdit &&
         response[0].forEach((entry) => addEditableTags(entry, "page", true));
@@ -123,7 +126,7 @@ const safeGetEntryByUrl = async (options) => {
     }
 };
 
-export const getServicesPageRes = async (entryUrl) => {
+export const getServicesPageRes = async (entryUrl, locale) => {
     try {
         for (const contentTypeUid of SERVICES_CONTENT_TYPE_UIDS) {
             const queryOpts = {
@@ -131,6 +134,7 @@ export const getServicesPageRes = async (entryUrl) => {
                 entryUrl,
                 referenceFieldPath: undefined,
                 jsonRtePath: ICON_CARDS_RTE_PATHS,
+                locale,
             };
 
             let entry =
@@ -146,6 +150,7 @@ export const getServicesPageRes = async (entryUrl) => {
                         contentTypeUid,
                         referenceFieldPath: undefined,
                         jsonRtePath: ICON_CARDS_RTE_PATHS,
+                        locale,
                     });
                     const entries = allResponse?.[0] ?? [];
                     entry = entries.find((item) =>
@@ -169,7 +174,7 @@ export const getServicesPageRes = async (entryUrl) => {
     }
 };
 
-export const getPageRes = async (entryUrl) => {
+export const getPageRes = async (entryUrl, locale) => {
     try {
         const response = await Stack.getEntryByUrl({
             contentTypeUid: "page",
@@ -184,6 +189,7 @@ export const getPageRes = async (entryUrl) => {
                 "page_components.section_with_html_code.description",
                 ...ICON_CARDS_RTE_PATHS,
             ],
+            locale,
         });
         const entry = pickEntry(response);
         if (!entry) return undefined;
@@ -352,13 +358,14 @@ export const extractAiAssistantData = (entry) => {
     };
 };
 
-export const getAiAssistantPageRes = async (entryUrl = "/ai-assistant") => {
+export const getAiAssistantPageRes = async (entryUrl = "/ai-assistant", locale) => {
     try {
         const response = await Stack.getEntryByUrl({
             contentTypeUid: "page",
             entryUrl,
             referenceFieldPath: undefined,
             jsonRtePath: AI_ASSISTANT_RTE_PATHS,
+            locale,
         });
         let entry = pickEntry(response);
 
@@ -369,6 +376,7 @@ export const getAiAssistantPageRes = async (entryUrl = "/ai-assistant") => {
                 urlField: "url.href",
                 referenceFieldPath: undefined,
                 jsonRtePath: AI_ASSISTANT_RTE_PATHS,
+                locale,
             });
         }
 

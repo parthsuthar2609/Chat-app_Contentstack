@@ -7,17 +7,19 @@ import { AiAssistantData } from '@/typescript/ai-assistant';
 import { notFound } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { useLocale } from '@/hooks/use-locale';
 
 export default function AiAssistantPage() {
   const [data, setData] = useState<AiAssistantData | null>(null);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
+  const { locale } = useLocale();
 
   async function fetchData() {
     try {
       setLoading(true);
       setMissing(false);
-      const entry = await getAiAssistantPageRes('/ai-assistant');
+      const entry = await getAiAssistantPageRes('/ai-assistant', locale);
 
       if (!entry) {
         setData(null);
@@ -39,7 +41,7 @@ export default function AiAssistantPage() {
   useEffect(() => {
     fetchData();
     onEntryChange(() => fetchData());
-  }, []);
+  }, [locale]);
 
   if (loading) {
     return (

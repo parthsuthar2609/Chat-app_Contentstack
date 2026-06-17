@@ -12,22 +12,24 @@ import { Page as PageProp } from '@/typescript/pages';
 import { notFound, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { useLocale } from '@/hooks/use-locale';
 
 type FetchStatus = 'loading' | 'found' | 'missing';
 
-async function fetchCmsEntry(entryUrl: string) {
-    return (await getPageRes(entryUrl)) || (await getServicesPageRes(entryUrl));
+async function fetchCmsEntry(entryUrl: string, locale?: string) {
+    return (await getPageRes(entryUrl, locale)) || (await getServicesPageRes(entryUrl, locale));
 }
 
 export default function CmsDynamicPage() {
     const entryUrl = usePathname();
+    const { locale } = useLocale();
     const [entry, setEntry] = useState<PageProp>();
     const [status, setStatus] = useState<FetchStatus>('loading');
 
     async function fetchData() {
         try {
             setStatus('loading');
-            const entryRes = await fetchCmsEntry(entryUrl);
+            const entryRes = await fetchCmsEntry(entryUrl, locale);
 
             if (!entryRes) {
                 setEntry(undefined);
@@ -56,7 +58,7 @@ export default function CmsDynamicPage() {
     useEffect(() => {
         fetchData();
         onEntryChange(() => fetchData());
-    }, [entryUrl]);
+    }, [entryUrl, locale]);
 
     if (status === 'missing') {
         notFound();
