@@ -17,6 +17,8 @@ type SearchPanelProps = {
   onSearch: (e: React.FormEvent) => void;
   onPromptSelect: (prompt: string) => void;
   onHistorySelect: (query: string) => void;
+  onClearHistory?: () => void;
+  onRetry?: () => void;
 };
 
 export default function SearchPanel({
@@ -31,10 +33,13 @@ export default function SearchPanel({
   onSearch,
   onPromptSelect,
   onHistorySelect,
+  onClearHistory,
+  onRetry,
 }: SearchPanelProps) {
   const searchButtonLabel = isLoading
     ? stack.searching_button_text || stack.search_button_text
     : stack.search_button_text;
+  const hasResults = searchResults.length > 0 || !!searchSummary;
 
   return (
     <div className='ai-assistant__search-panel ai-assistant__panel-enter' role='tabpanel'>
@@ -56,8 +61,19 @@ export default function SearchPanel({
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder={stack.search_placeholder}
             disabled={isLoading}
+            aria-label='Search blogs'
             {...(stack.editTags.searchPlaceholder as {})}
           />
+        )}
+        {searchQuery && !isLoading && (
+          <button
+            type='button'
+            className='ai-assistant__search-clear'
+            onClick={() => onQueryChange('')}
+            aria-label='Clear search'
+          >
+            <i className='fa-solid fa-xmark' aria-hidden />
+          </button>
         )}
         <button
           type='submit'
@@ -81,13 +97,20 @@ export default function SearchPanel({
           <span className='ai-assistant__typing-dot' />
           <span className='ai-assistant__typing-dot' />
           <span className='ai-assistant__typing-dot' />
-          <span>Searching blogs…</span>
+          <span>Searching blogs and generating summary…</span>
         </div>
       )}
 
-      {!isLoading && searchHistory.length > 0 && !searchResults.length && !searchSummary && (
+      {!isLoading && searchHistory.length > 0 && !hasResults && (
         <div className='ai-assistant__search-history'>
-          <p className='ai-assistant__search-history-label'>Recent searches</p>
+          <div className='ai-assistant__search-history-head'>
+            <p className='ai-assistant__search-history-label'>Recent searches</p>
+            {onClearHistory && (
+              <button type='button' className='ai-assistant__search-history-clear' onClick={onClearHistory}>
+                Clear
+              </button>
+            )}
+          </div>
           <div className='ai-assistant__search-history-chips'>
             {searchHistory.map((item) => (
               <button
@@ -105,9 +128,14 @@ export default function SearchPanel({
       )}
 
       {searchError && (
-        <p className='ai-assistant__chat-error' role='alert'>
-          {searchError}
-        </p>
+        <div className='ai-assistant__error-banner' role='alert'>
+          <p className='ai-assistant__chat-error'>{searchError}</p>
+          {onRetry && (
+            <button type='button' className='ai-assistant__retry-btn' onClick={onRetry}>
+              <i className='fa-solid fa-rotate-right' aria-hidden /> Retry search
+            </button>
+          )}
+        </div>
       )}
 
       {searchSummary && (
@@ -118,31 +146,36 @@ export default function SearchPanel({
       )}
 
       {searchResults.length > 0 && (
-        <ul className='ai-assistant__search-results'>
-          {searchResults.map((item, index) => (
-            <li
-              key={item.uid}
-              className='ai-assistant__search-card ai-assistant__fade-rise'
-              style={{ animationDelay: `${index * 0.08}s` }}
-            >
-              <Link href={item.url} className='ai-assistant__search-card-title'>
-                {item.title}
-              </Link>
-              <p>{item.excerpt}…</p>
-              {stack.read_article_text && (
-                <Link href={item.url} className='ai-assistant__search-card-link'>
-                  <span {...(stack.editTags.readArticleText as {})}>
-                    {stack.read_article_text}
-                  </span>{' '}
-                  <i className='fa-solid fa-arrow-right' aria-hidden />
+        <>
+          <p className='ai-assistant__search-result-count'>
+            {searchResults.length} article{searchResults.length !== 1 ? 's' : ''} found
+          </p>
+          <ul className='ai-assistant__search-results'>
+            {searchResults.map((item, index) => (
+              <li
+                key={item.uid}
+                className='ai-assistant__search-card ai-assistant__fade-rise'
+                style={{ animationDelay: `${index * 0.08}s` }}
+              >
+                <Link href={item.url} className='ai-assistant__search-card-title'>
+                  {item.title}
                 </Link>
-              )}
-            </li>
-          ))}
-        </ul>
+                <p>{item.excerpt}…</p>
+                {stack.read_article_text && (
+                  <Link href={item.url} className='ai-assistant__search-card-link'>
+                    <span {...(stack.editTags.readArticleText as {})}>
+                      {stack.read_article_text}
+                    </span>{' '}
+                    <i className='fa-solid fa-arrow-right' aria-hidden />
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
-      {!isLoading && !searchResults.length && !searchSummary && (
+      {!isLoading && !hasResults && !searchError && (
         <SuggestedPrompts
           suggestions={stack.suggested_prompts}
           editTags={stack.$}

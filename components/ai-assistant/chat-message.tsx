@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChatMessage as ChatMessageType, ChatSource } from '@/typescript/ai-assistant';
-import { formatMessageTime } from '@/components/ai-assistant/utils';
+import { formatMessageTime, loadMessageFeedback, saveMessageFeedback } from '@/components/ai-assistant/utils';
 
 type ChatMessageProps = {
   message: ChatMessageType;
-  stackName?: string;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
+  onFeedback?: (messageId: string, feedback: 'up' | 'down' | null) => void;
+  onAskAboutSource?: (title: string) => void;
 };
 
 function renderInline(text: string): React.ReactNode[] {
@@ -56,30 +57,90 @@ function renderMarkdown(content: string) {
   const lines = content.split('\n');
   const nodes: React.ReactNode[] = [];
   let listItems: string[] = [];
+  let listOrdered = false;
+  let codeLines: string[] = [];
+  let inCodeBlock = false;
   let key = 0;
 
   function flushList() {
     if (!listItems.length) return;
+    const ListTag = listOrdered ? 'ol' : 'ul';
     nodes.push(
-      <ul key={key++} className='ai-assistant__md-list'>
-        {listItems.map((item, i) => (
-          <li key={i}>{renderInline(item)}</li>
-        ))}
-      </ul>,
+      React.createElement(
+        ListTag,
+        { key: key++, className: 'ai-assistant__md-list' },
+        listItems.map((item, i) => <li key={i}>{renderInline(item)}</li>),
+      ),
     );
     listItems = [];
+    listOrdered = false;
+  }
+
+  function flushCodeBlock() {
+    if (!codeLines.length) return;
+    nodes.push(
+      <pre key={key++} className='ai-assistant__code-block'>
+        <code>{codeLines.join('\n')}</code>
+      </pre>,
+    );
+    codeLines = [];
+    inCodeBlock = false;
   }
 
   for (const line of lines) {
+    if (line.trim().startsWith('```')) {
+      if (inCodeBlock) {
+        flushCodeBlock();
+      } else {
+        flushList();
+        inCodeBlock = true;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeLines.push(line);
+      continue;
+    }
+
     const trimmed = line.trim();
     if (!trimmed) {
       flushList();
       continue;
     }
+
+    if (trimmed.startsWith('### ')) {
+      flushList();
+      nodes.push(
+        <h4 key={key++} className='ai-assistant__md-h4'>
+          {renderInline(trimmed.slice(4))}
+        </h4>,
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith('## ')) {
+      flushList();
+      nodes.push(
+        <h3 key={key++} className='ai-assistant__md-h3'>
+          {renderInline(trimmed.slice(3))}
+        </h3>,
+      );
+      continue;
+    }
+
+    const orderedMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+    if (orderedMatch) {
+      listOrdered = true;
+      listItems.push(orderedMatch[1]);
+      continue;
+    }
+
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       listItems.push(trimmed.slice(2));
       continue;
     }
+
     flushList();
     nodes.push(
       <p key={key++} className='ai-assistant__md-p'>
@@ -87,8 +148,9 @@ function renderMarkdown(content: string) {
       </p>,
     );
   }
-  flushList();
 
+  flushList();
+  flushCodeBlock();
   return nodes;
 }
 
@@ -96,8 +158,16 @@ export default function ChatMessageBubble({
   message,
   onRegenerate,
   isRegenerating,
+  onFeedback,
+  onAskAboutSource,
 }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(message.feedback ?? null);
+
+  useEffect(() => {
+    const saved = loadMessageFeedback(message.id);
+    if (saved) setFeedback(saved);
+  }, [message.id]);
 
   async function handleCopy() {
     try {
@@ -107,6 +177,13 @@ export default function ChatMessageBubble({
     } catch {
       /* clipboard unavailable */
     }
+  }
+
+  function handleFeedback(next: 'up' | 'down') {
+    const value = feedback === next ? null : next;
+    setFeedback(value);
+    saveMessageFeedback(message.id, value);
+    onFeedback?.(message.id, value);
   }
 
   return (
@@ -136,6 +213,16 @@ export default function ChatMessageBubble({
               {message.sources.map((source: ChatSource) => (
                 <li key={source.uid}>
                   <Link href={source.url}>{source.title}</Link>
+                  {onAskAboutSource && (
+                    <button
+                      type='button'
+                      className='ai-assistant__source-ask'
+                      onClick={() => onAskAboutSource(source.title)}
+                      title={`Ask about ${source.title}`}
+                    >
+                      <i className='fa-solid fa-comment-dots' aria-hidden />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -160,6 +247,24 @@ export default function ChatMessageBubble({
               {isRegenerating ? 'Regenerating…' : 'Regenerate'}
             </button>
           )}
+          <button
+            type='button'
+            onClick={() => handleFeedback('up')}
+            className={`ai-assistant__msg-action ai-assistant__msg-action--feedback${feedback === 'up' ? ' is-active' : ''}`}
+            aria-pressed={feedback === 'up'}
+            aria-label='Helpful response'
+          >
+            <i className={`fa-${feedback === 'up' ? 'solid' : 'regular'} fa-thumbs-up`} aria-hidden />
+          </button>
+          <button
+            type='button'
+            onClick={() => handleFeedback('down')}
+            className={`ai-assistant__msg-action ai-assistant__msg-action--feedback${feedback === 'down' ? ' is-active' : ''}`}
+            aria-pressed={feedback === 'down'}
+            aria-label='Not helpful'
+          >
+            <i className={`fa-${feedback === 'down' ? 'solid' : 'regular'} fa-thumbs-down`} aria-hidden />
+          </button>
         </div>
       )}
     </div>

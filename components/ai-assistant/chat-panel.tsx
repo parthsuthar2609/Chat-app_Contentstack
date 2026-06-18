@@ -1,10 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ChatMessageBubble from '@/components/ai-assistant/chat-message';
 import SuggestedPrompts from '@/components/ai-assistant/suggested-prompts';
 import { resolveStackIconKey, StackIcon } from '@/components/ai-assistant/stack-icons';
-import { exportChatToPdf } from '@/components/ai-assistant/utils';
+import {
+  copyChatTranscript,
+  downloadChatTranscript,
+  exportChatToPdf,
+  MAX_CHAT_INPUT_CHARS,
+} from '@/components/ai-assistant/utils';
 import { ChatMessage, TechStack } from '@/typescript/ai-assistant';
 
 type ChatPanelProps = {
@@ -18,6 +23,7 @@ type ChatPanelProps = {
   chatError: string;
   isLoading: boolean;
   showScrollBtn: boolean;
+  followUpPrompts: string[];
   chatBodyRef: React.RefObject<HTMLDivElement | null>;
   onScroll: () => void;
   onScrollToBottom: () => void;
@@ -27,6 +33,8 @@ type ChatPanelProps = {
   onClear: () => void;
   onPromptSelect: (prompt: string) => void;
   onRegenerate: () => void;
+  onRetry?: () => void;
+  onAskAboutSource?: (title: string) => void;
 };
 
 export default function ChatPanel({
@@ -40,6 +48,7 @@ export default function ChatPanel({
   chatError,
   isLoading,
   showScrollBtn,
+  followUpPrompts,
   chatBodyRef,
   onScroll,
   onScrollToBottom,
@@ -49,15 +58,34 @@ export default function ChatPanel({
   onClear,
   onPromptSelect,
   onRegenerate,
+  onRetry,
+  onAskAboutSource,
 }: ChatPanelProps) {
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [copiedTranscript, setCopiedTranscript] = useState(false);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
   const showWelcome = messages.length === 0 && !isLoading;
+  const charCount = chatInput.length;
+  const nearLimit = charCount > MAX_CHAT_INPUT_CHARS * 0.85;
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        composerRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   async function handleExportChat() {
     if (!messages.length || exporting) return;
     setExporting(true);
+    setExportError('');
     try {
       const safeName = stack.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       await exportChatToPdf(messages, {
@@ -68,17 +96,40 @@ export default function ChatPanel({
       setExported(true);
       setTimeout(() => setExported(false), 2000);
     } catch {
-      /* PDF export failed */
+      setExportError('PDF export failed. Try copying the chat instead.');
     } finally {
       setExporting(false);
     }
   }
 
+  async function handleCopyTranscript() {
+    if (!messages.length) return;
+    try {
+      await copyChatTranscript(messages, stack.name);
+      setCopiedTranscript(true);
+      setTimeout(() => setCopiedTranscript(false), 2000);
+    } catch {
+      setExportError('Could not copy to clipboard.');
+    }
+  }
+
+  function handleDownloadText() {
+    const safeName = stack.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    downloadChatTranscript(messages, {
+      assistantName: stack.name,
+      filename: `${safeName || 'ai-assistant'}-chat.txt`,
+    });
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (chatInput.trim() && !isLoading) onSend(e);
+      if (chatInput.trim() && !isLoading && charCount <= MAX_CHAT_INPUT_CHARS) onSend(e);
     }
+  }
+
+  function handleInputChange(value: string) {
+    onInputChange(value.slice(0, MAX_CHAT_INPUT_CHARS));
   }
 
   return (
@@ -92,6 +143,14 @@ export default function ChatPanel({
                 <span {...(stack.editTags.clearChatCta as {})}>{stack.clear_chat_cta}</span>
               </button>
             )}
+            <button type='button' className='ai-assistant__toolbar-btn' onClick={handleCopyTranscript}>
+              <i className={`fa-${copiedTranscript ? 'solid fa-check' : 'regular fa-clipboard'}`} aria-hidden />
+              {copiedTranscript ? 'Copied' : 'Copy chat'}
+            </button>
+            <button type='button' className='ai-assistant__toolbar-btn' onClick={handleDownloadText}>
+              <i className='fa-solid fa-file-lines' aria-hidden />
+              Export TXT
+            </button>
             <button
               type='button'
               className='ai-assistant__toolbar-btn'
@@ -141,6 +200,7 @@ export default function ChatPanel({
                     msg.id === lastAssistantId && !isLoading ? onRegenerate : undefined
                   }
                   isRegenerating={isLoading && msg.id === lastAssistantId}
+                  onAskAboutSource={onAskAboutSource}
                 />
               ))}
               {isLoading && (
@@ -149,6 +209,25 @@ export default function ChatPanel({
                     <span className='ai-assistant__typing-dot' />
                     <span className='ai-assistant__typing-dot' />
                     <span className='ai-assistant__typing-dot' />
+                  </div>
+                </div>
+              )}
+              {!isLoading && followUpPrompts.length > 0 && (
+                <div className='ai-assistant__follow-ups'>
+                  <p className='ai-assistant__follow-ups-label'>
+                    <i className='fa-solid fa-lightbulb' aria-hidden /> Continue with
+                  </p>
+                  <div className='ai-assistant__follow-ups-chips'>
+                    {followUpPrompts.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type='button'
+                        className='ai-assistant__follow-up-chip'
+                        onClick={() => onPromptSelect(prompt)}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -168,10 +247,15 @@ export default function ChatPanel({
         )}
       </div>
 
-      {chatError && (
-        <p className='ai-assistant__chat-error' role='alert'>
-          {chatError}
-        </p>
+      {(chatError || exportError) && (
+        <div className='ai-assistant__error-banner' role='alert'>
+          <p className='ai-assistant__chat-error'>{chatError || exportError}</p>
+          {chatError && onRetry && (
+            <button type='button' className='ai-assistant__retry-btn' onClick={onRetry}>
+              <i className='fa-solid fa-rotate-right' aria-hidden /> Retry
+            </button>
+          )}
+        </div>
       )}
 
       <form
@@ -180,9 +264,10 @@ export default function ChatPanel({
       >
         {stack.chat_placeholder && (
           <textarea
+            ref={composerRef}
             value={chatInput}
             onChange={(e) => {
-              onInputChange(e.target.value);
+              handleInputChange(e.target.value);
               e.target.style.height = 'auto';
               e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
             }}
@@ -191,15 +276,25 @@ export default function ChatPanel({
             className='ai-assistant__composer-input ai-assistant__composer-textarea'
             disabled={isLoading}
             rows={1}
+            aria-label='Chat message'
             {...(stack.editTags.chatPlaceholder as {})}
           />
         )}
         <div className='ai-assistant__composer-actions'>
+          <span
+            className={`ai-assistant__char-count${nearLimit ? ' is-warning' : ''}${charCount >= MAX_CHAT_INPUT_CHARS ? ' is-limit' : ''}`}
+            aria-live='polite'
+          >
+            {charCount}/{MAX_CHAT_INPUT_CHARS}
+          </span>
           {stack.enter_to_send && (
             <span className='ai-assistant__composer-hint' {...(stack.editTags.enterToSend as {})}>
               {stack.enter_to_send}
             </span>
           )}
+          <span className='ai-assistant__composer-shortcut' title='Focus composer'>
+            <kbd>Ctrl</kbd>+<kbd>K</kbd>
+          </span>
           {isLoading ? (
             <button type='button' className='ai-assistant__composer-stop' onClick={onStop}>
               <i className='fa-solid fa-stop' aria-hidden /> Stop
@@ -208,7 +303,7 @@ export default function ChatPanel({
             <button
               type='submit'
               className='ai-assistant__composer-send'
-              disabled={!chatInput.trim()}
+              disabled={!chatInput.trim() || charCount > MAX_CHAT_INPUT_CHARS}
             >
               <i className='fa-solid fa-paper-plane' aria-hidden />
               {stack.send_button_text && (

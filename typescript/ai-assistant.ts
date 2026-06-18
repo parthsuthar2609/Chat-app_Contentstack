@@ -151,6 +151,7 @@ export type ChatMessage = {
   content: string;
   sources?: ChatSource[];
   createdAt?: number;
+  feedback?: 'up' | 'down';
 };
 
 export type SearchResultItem = {
