@@ -20,6 +20,22 @@ export function buildChatTranscript(messages: ChatMessage[], assistantName = 'As
     .join('\n\n---\n\n');
 }
 
+/** Build a filesystem-safe unique export name, e.g. `content-stack-chat-2026-06-03_14-30-52.pdf` */
+export function buildUniqueExportFilename(baseName: string, extension = 'pdf'): string {
+  const safe =
+    baseName
+      .replace(/\.[^.]+$/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'export';
+  const stamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', '_')
+    .replace(/:/g, '-');
+  return `${safe}-${stamp}.${extension}`;
+}
+
 /** Download the conversation as a PDF file. */
 export async function exportChatToPdf(
   messages: ChatMessage[],
@@ -28,7 +44,7 @@ export async function exportChatToPdf(
   const { jsPDF } = await import('jspdf');
   const assistantName = options.assistantName ?? 'Assistant';
   const title = options.title ?? 'AI Assistant Chat';
-  const filename = options.filename ?? 'ai-assistant-chat.pdf';
+  const filename = buildUniqueExportFilename(options.filename ?? 'ai-assistant-chat.pdf');
 
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
