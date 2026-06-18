@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import parse from 'html-react-parser';
 import ChatPanel from '@/components/ai-assistant/chat-panel';
+import { buildFollowUpPrompts } from '@/components/ai-assistant/follow-ups';
 import { normalizeStacks } from '@/components/ai-assistant/normalize-stacks';
 import SearchPanel from '@/components/ai-assistant/search-panel';
 import { resolveStackIconKey, StackIcon } from '@/components/ai-assistant/stack-icons';
@@ -12,7 +13,14 @@ import {
   ChatMessage,
   SearchResultItem,
 } from '@/typescript/ai-assistant';
-import { clearChatHistory, loadChatHistory, loadSearchHistory, saveChatHistory, saveSearchHistory } from '@/components/ai-assistant/utils';
+import {
+  clearChatHistory,
+  clearSearchHistory,
+  loadChatHistory,
+  loadSearchHistory,
+  saveChatHistory,
+  saveSearchHistory,
+} from '@/components/ai-assistant/utils';
 
 type AiAssistantProps = {
   data: AiAssistantData;
@@ -34,13 +42,19 @@ export default function AiAssistant({ data }: AiAssistantProps) {
   const [searchError, setSearchError] = useState('');
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [lastFailedMessage, setLastFailedMessage] = useState('');
+  const [lastFailedSearch, setLastFailedSearch] = useState('');
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const stack = stacks.find((s) => s.id === activeStackId);
   const messages = messagesByStack[activeStackId] ?? [];
+  const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant');
+  const followUpPrompts = useMemo(
+    () => (chatLoading ? [] : buildFollowUpPrompts(lastAssistant)),
+    [lastAssistant, chatLoading],
+  );
 
-  // Load chat history from browser (once per tab)
   useEffect(() => {
     const saved: Record<string, ChatMessage[]> = {};
     stacks.forEach((s) => {
@@ -50,19 +64,16 @@ export default function AiAssistant({ data }: AiAssistantProps) {
     if (Object.keys(saved).length) setMessagesByStack(saved);
   }, [stacks]);
 
-  // Save chat history when messages change
   useEffect(() => {
     if (!activeStackId) return;
     const msgs = messagesByStack[activeStackId];
     if (msgs?.length) saveChatHistory(activeStackId, msgs);
   }, [messagesByStack, activeStackId]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     chatBodyRef.current?.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, chatLoading]);
 
-  // Load search history when tab changes
   useEffect(() => {
     if (activeStackId) setSearchHistory(loadSearchHistory(activeStackId));
   }, [activeStackId]);
@@ -102,6 +113,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
     }
 
     setChatError('');
+    setLastFailedMessage(messageText);
     setChatLoading(true);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
@@ -137,6 +149,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
           },
         ],
       }));
+      setLastFailedMessage('');
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setChatError(err instanceof Error ? err.message : 'Something went wrong.');
@@ -163,15 +176,17 @@ export default function AiAssistant({ data }: AiAssistantProps) {
     setShowScrollBtn(!nearBottom && messages.length > 0);
   }
 
-  async function runSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    if (!query || searchLoading) return;
-    if (!stack) return; // This should never happen, but just in case
+  async function runSearch(queryOverride?: string) {
+    const query = (queryOverride ?? searchQuery).trim();
+    if (!query || searchLoading || !stack) return;
+
+    if (queryOverride) setSearchQuery(queryOverride);
+
     setSearchError('');
     setSearchResults([]);
     setSearchSummary('');
     setSearchLoading(true);
+    setLastFailedSearch(query);
 
     try {
       const res = await fetch('/api/ai/search', {
@@ -179,8 +194,8 @@ export default function AiAssistant({ data }: AiAssistantProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          blogTags: stack?.blog_tags,
-          stackName: stack?.name,
+          blogTags: stack.blog_tags,
+          stackName: stack.name,
         }),
       });
 
@@ -190,11 +205,33 @@ export default function AiAssistant({ data }: AiAssistantProps) {
       setSearchResults(result.results || []);
       setSearchSummary(result.summary || '');
       setSearchHistory(saveSearchHistory(activeStackId, query));
+      setLastFailedSearch('');
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : 'Search failed.');
     } finally {
       setSearchLoading(false);
     }
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    runSearch();
+  }
+
+  function handleHistorySelect(query: string) {
+    setSearchQuery(query);
+    runSearch(query);
+  }
+
+  function handleSearchPrompt(prompt: string) {
+    setSearchQuery(prompt);
+    runSearch(prompt);
+  }
+
+  function handleAskAboutSource(title: string) {
+    const prompt = `Tell me more about "${title}"`;
+    setChatInput(prompt);
+    sendMessage(prompt);
   }
 
   function switchStack(id: string) {
@@ -213,6 +250,28 @@ export default function AiAssistant({ data }: AiAssistantProps) {
     setChatError('');
   }
 
+  function handleClearSearchHistory() {
+    clearSearchHistory(activeStackId);
+    setSearchHistory([]);
+  }
+
+  function retryChat() {
+    if (!lastFailedMessage) return;
+    const history = messagesByStack[activeStackId] ?? [];
+    const last = history[history.length - 1];
+    if (last?.role === 'user' && last.content === lastFailedMessage) {
+      setMessagesByStack((prev) => ({
+        ...prev,
+        [activeStackId]: history.slice(0, -1),
+      }));
+    }
+    sendMessage(lastFailedMessage);
+  }
+
+  function retrySearch() {
+    if (lastFailedSearch) runSearch(lastFailedSearch);
+  }
+
   return (
     <section className='ai-assistant'>
       <div className='max-width ai-assistant__container'>
@@ -227,7 +286,6 @@ export default function AiAssistant({ data }: AiAssistantProps) {
           </header>
         )}
 
-        {/* Platform tabs: Content Stack | Sitecore */}
         <div className='ai-assistant__platform-tabs' role='tablist'>
           {stacks.map((tab) => (
             <button
@@ -245,7 +303,6 @@ export default function AiAssistant({ data }: AiAssistantProps) {
         </div>
 
         <div className='ai-assistant__workspace' key={activeStackId}>
-          {/* Chat | Search mode switch */}
           <div className='ai-assistant__mode-switch' role='tablist'>
             {stack.chat_enabled && stack.chat_tab_label && (
               <button
@@ -283,6 +340,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
               chatError={chatError}
               isLoading={chatLoading}
               showScrollBtn={showScrollBtn}
+              followUpPrompts={followUpPrompts}
               chatBodyRef={chatBodyRef}
               onScroll={handleChatScroll}
               onScrollToBottom={scrollToBottom}
@@ -295,6 +353,8 @@ export default function AiAssistant({ data }: AiAssistantProps) {
               onClear={clearChat}
               onPromptSelect={sendMessage}
               onRegenerate={() => sendMessage('', true)}
+              onRetry={retryChat}
+              onAskAboutSource={handleAskAboutSource}
             />
           )}
 
@@ -308,13 +368,11 @@ export default function AiAssistant({ data }: AiAssistantProps) {
               isLoading={searchLoading}
               searchHistory={searchHistory}
               onQueryChange={setSearchQuery}
-              onSearch={runSearch}
-              onPromptSelect={setSearchQuery}
-              onHistorySelect={(q) => {
-                setSearchQuery(q);
-                setSearchResults([]);
-                setSearchSummary('');
-              }}
+              onSearch={handleSearchSubmit}
+              onPromptSelect={handleSearchPrompt}
+              onHistorySelect={handleHistorySelect}
+              onClearHistory={handleClearSearchHistory}
+              onRetry={retrySearch}
             />
           )}
         </div>

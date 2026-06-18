@@ -3,6 +3,8 @@ import { ChatMessage } from '@/typescript/ai-assistant';
 const PDF_PAGE_HEIGHT = 280;
 const PDF_MARGIN = 15;
 
+export const MAX_CHAT_INPUT_CHARS = 2000;
+
 export function formatMessageTime(ts?: number): string {
   if (!ts) return '';
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -93,6 +95,31 @@ export async function exportChatToPdf(
   doc.save(filename);
 }
 
+/** Copy full conversation to clipboard as plain text. */
+export async function copyChatTranscript(
+  messages: ChatMessage[],
+  assistantName = 'Assistant',
+): Promise<void> {
+  const text = buildChatTranscript(messages, assistantName);
+  await navigator.clipboard.writeText(text);
+}
+
+/** Download conversation as a plain-text file. */
+export function downloadChatTranscript(
+  messages: ChatMessage[],
+  options: { assistantName?: string; filename?: string } = {},
+): void {
+  const assistantName = options.assistantName ?? 'Assistant';
+  const filename = options.filename ?? 'ai-assistant-chat.txt';
+  const blob = new Blob([buildChatTranscript(messages, assistantName)], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 const CHAT_STORAGE_KEY = 'ai-assistant-chat';
 const MAX_CHAT_MESSAGES = 50;
 
@@ -140,4 +167,36 @@ export function saveSearchHistory(stackId: string, query: string, limit = 5): st
   const next = [trimmed, ...loadSearchHistory(stackId).filter((q) => q !== trimmed)].slice(0, limit);
   sessionStorage.setItem(`ai-assistant-search:${stackId}`, JSON.stringify(next));
   return next;
+}
+
+export function clearSearchHistory(stackId: string): void {
+  if (typeof window === 'undefined' || !stackId) return;
+  sessionStorage.removeItem(`ai-assistant-search:${stackId}`);
+}
+
+const FEEDBACK_STORAGE_KEY = 'ai-assistant-feedback';
+
+/** Persist thumbs up/down per message id (local only). */
+export function saveMessageFeedback(messageId: string, feedback: 'up' | 'down' | null): void {
+  if (typeof window === 'undefined' || !messageId) return;
+  try {
+    const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, 'up' | 'down'>) : {};
+    if (feedback) map[messageId] = feedback;
+    else delete map[messageId];
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    /* storage full */
+  }
+}
+
+export function loadMessageFeedback(messageId: string): 'up' | 'down' | null {
+  if (typeof window === 'undefined' || !messageId) return null;
+  try {
+    const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, 'up' | 'down'>) : {};
+    return map[messageId] ?? null;
+  } catch {
+    return null;
+  }
 }
