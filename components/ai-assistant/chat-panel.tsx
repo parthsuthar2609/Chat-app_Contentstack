@@ -196,6 +196,7 @@ export default function ChatPanel({
                 <ChatMessageBubble
                   key={msg.id}
                   message={msg}
+                  readArticleText={stack.read_article_text}
                   onRegenerate={
                     msg.id === lastAssistantId && !isLoading ? onRegenerate : undefined
                   }

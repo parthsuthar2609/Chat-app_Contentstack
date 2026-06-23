@@ -145,6 +145,7 @@ export default function AiAssistant({ data }: AiAssistantProps) {
             role: 'assistant',
             content: result.reply,
             sources: result.sources,
+            suggestedArticles: result.suggestedArticles,
             createdAt: Date.now(),
           },
         ],

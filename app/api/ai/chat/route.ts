@@ -39,7 +39,11 @@ export async function POST(request: Request) {
     }
 
     const history = Array.isArray(body.history) ? body.history : [];
-    const sources = await findRelevantBlogs(message, body.blogTags, 3);
+    const topicQuery = [message, ...history.slice(-4).map((item) => item.content)]
+      .join(' ')
+      .slice(0, 600);
+    const relevantBlogs = await findRelevantBlogs(topicQuery, body.blogTags, 6);
+    const sources = relevantBlogs.slice(0, 3);
     const blogContext = buildBlogContextBlock(sources);
 
     const systemInstruction = buildChatSystemInstruction(
@@ -68,6 +72,12 @@ export async function POST(request: Request) {
       reply: result.reply,
       model: result.model,
       sources: sources.map(({ uid, title, url }) => ({ uid, title, url })),
+      suggestedArticles: relevantBlogs.slice(0, 4).map(({ uid, title, url, excerpt }) => ({
+        uid,
+        title,
+        url,
+        excerpt,
+      })),
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unexpected server error.';
