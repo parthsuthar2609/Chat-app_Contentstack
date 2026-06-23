@@ -150,6 +150,7 @@ export type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   sources?: ChatSource[];
+  suggestedArticles?: SearchResultItem[];
   createdAt?: number;
   feedback?: 'up' | 'down';
 };

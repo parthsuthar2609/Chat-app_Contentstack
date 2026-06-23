@@ -1155,6 +1155,109 @@
   transform: translateY(-1px);
 }
 
+/* Suggested articles (chat topic) */
+.ai-assistant__suggested-articles {
+  margin-top: 10px;
+  padding-left: 4px;
+  max-width: 100%;
+}
+
+.ai-assistant__suggested-articles-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cs-text-faint);
+}
+
+.ai-assistant__suggested-articles-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-assistant__suggested-article {
+  padding: 12px 14px;
+  border: 1px solid var(--cs-border);
+  border-radius: 12px;
+  background: var(--cs-bg-elevated);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.ai-assistant__suggested-article:hover {
+  border-color: var(--cs-accent-ring);
+  box-shadow: var(--cs-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.ai-assistant__suggested-article-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cs-text);
+  text-decoration: none;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.ai-assistant__suggested-article-title:hover {
+  color: var(--cs-accent);
+}
+
+.ai-assistant__suggested-article-excerpt {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--cs-text-muted);
+}
+
+.ai-assistant__suggested-article-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-assistant__suggested-article-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cs-accent);
+  text-decoration: none;
+}
+
+.ai-assistant__suggested-article-link:hover {
+  text-decoration: underline;
+}
+
+.ai-assistant__suggested-article-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--cs-accent-soft);
+  color: var(--cs-accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ai-assistant__suggested-article-ask:hover {
+  background: var(--cs-accent-ring);
+}
+
 .ai-assistant__error-banner {
   display: flex;
   align-items: center;
@@ -1356,6 +1459,10 @@
     display: none;
   }
 
+  .ai-assistant__suggested-articles-list {
+    grid-template-columns: 1fr;
+  }
+
   .ai-assistant__search-bar {
     flex-wrap: wrap;
     padding: 12px;
@@ -1374,6 +1481,7 @@
 .mainClass .ai-assistant__search-card,
 .mainClass .ai-assistant__search-history-chip,
 .mainClass .ai-assistant__follow-up-chip,
+.mainClass .ai-assistant__suggested-article,
 .mainClass .ai-assistant__composer-input,
 .mainClass .ai-assistant__search-bar {
   transition: background-color var(--cs-transition), color var(--cs-transition),

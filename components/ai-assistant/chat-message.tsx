@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import SuggestedArticles from '@/components/ai-assistant/suggested-articles';
 import { ChatMessage as ChatMessageType, ChatSource } from '@/typescript/ai-assistant';
 import { formatMessageTime, loadMessageFeedback, saveMessageFeedback } from '@/components/ai-assistant/utils';
 
 type ChatMessageProps = {
   message: ChatMessageType;
+  readArticleText?: string;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
   onFeedback?: (messageId: string, feedback: 'up' | 'down' | null) => void;
@@ -156,6 +158,7 @@ function renderMarkdown(content: string) {
 
 export default function ChatMessageBubble({
   message,
+  readArticleText,
   onRegenerate,
   isRegenerating,
   onFeedback,
@@ -266,6 +269,14 @@ export default function ChatMessageBubble({
             <i className={`fa-${feedback === 'down' ? 'solid' : 'regular'} fa-thumbs-down`} aria-hidden />
           </button>
         </div>
+      )}
+
+      {message.role === 'assistant' && message.suggestedArticles && message.suggestedArticles.length > 0 && (
+        <SuggestedArticles
+          articles={message.suggestedArticles}
+          readArticleText={readArticleText}
+          onAskAbout={onAskAboutSource}
+        />
       )}
     </div>
   );
